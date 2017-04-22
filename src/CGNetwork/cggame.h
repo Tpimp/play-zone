@@ -13,6 +13,7 @@ public:
 signals:
 
 public slots:
+    void processGameMessage(int func, QByteArray data);
 protected:
     CGServer *mServer;
 };

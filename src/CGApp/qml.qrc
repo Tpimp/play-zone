@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>CG_login.js</file>
+        <file>CG_SocialMediaBtn.qml</file>
+    </qresource>
+</RCC>

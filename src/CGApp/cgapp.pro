@@ -48,3 +48,8 @@ unix {
     target.path = $$installPath
     INSTALLS += target qmldir
 }
+
+RESOURCES += \
+    qml.qrc \
+    images.qrc \
+    fonts.qrc

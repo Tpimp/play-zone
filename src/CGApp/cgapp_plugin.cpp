@@ -6,6 +6,6 @@
 void CGAppPlugin::registerTypes(const char *uri)
 {
     // @uri com.mycompany.qmlcomponents
-    qmlRegisterType<CGChessGames>(uri, 1, 0, "CGChessGames");
+    qmlRegisterType<CGChessGames>(uri, 1, 0, "CGChessGame");
 }
 

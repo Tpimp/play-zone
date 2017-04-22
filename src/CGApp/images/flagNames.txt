@@ -1,0 +1,69 @@
+Flags of America
+
+Row 1: United States, Brazil, Mexico, Columbia, Argentina
+Row 2: Canada, Peru, Venezuela, Chile, Ecuador
+Row 3: Guatemala, Cuba, Haiti, Bolivia, Dominican Republic
+Row 4: Honduras, Paraguay, El Salvador, Nicaragua, Costa Rica
+Row 5: Puerto Rico, Guyana, Uruguay, Jamaica, Trinidad and Tobago
+
+Flags of Middle East
+
+Row 1: Cambodia, Azerbaijan, United Arab Emirates, Israel, Laos
+Row 2: Jordan, Kyrgyzstan, Singapore, Tajikistan, Turkmenistan
+Row 3: Georgia, Palestine, Lebanon, Mongolia, Oman
+Row 4: Armenia, Kuwait, Qatar, Bahrain, East Timor
+Row 5: Cyprus, Bhutan, Brunei, Maldives, Abkhazia
+
+Flags of Asia
+Row 1: China, India, Indonesia, Pakistan, Bangladesh
+Row 2: Russia, Japan, Philippines, Vietnam, Turkey
+Row 3: Iran, Thailand, Myanmar, South Korea, Iraq
+Row 4: Afghanistan, Nepal, Malaysia, Uzbekistan, Saudi Arabia
+Row 5: Yemen, North Korea, Syria, Sri Lanka, Kazakhstan
+
+Flags of Europe2
+Row 1: Slovakia, Finland, Norway, Ireland, Croatia
+Row 2: Bosnia and Herzegovina, Moldova, Lithuania, Albania, Armenia (duplicate)
+Row 3: Latvia, Macedonia, Slovenia, Estonia, Cyprus
+Row 4: Montenegro, Luxembourg, Malta, Iceland, Andorra
+Row 5: Liechtenstein, Georgia (duplicate), San Marino, Poland, Vatican City
+
+Flags of Africa
+Row 1: Tunisia, Somalia, Guinea, Benin, South Sudan
+Row 2: Rwanda, Burundi, Sierra Leone, Togo, Libya
+Row 3: Eritea, Central African Republic, Republic of the Congo, Liberia, Mauritania
+Row 4: Namibia, Botswana, Lesotho, Guinea-Bissau, The Gambia
+Row 5: Gabon, Mauritius, Swaziland, Djibouti, Comoros
+
+Flags of Africa2
+Row 1: Nigeria, Ethiopia, Egypt, Democratic Republic of the Congo, South Africa
+Row 2: Tanzania, Sudan, Morocco, Kenya, Algeria
+Row 3: Uganda, Ghana, Mozambique, Madagascar, Cameroon
+Row 4: Ivory Coast, Angola, Zambia, Niger, Mali
+Row 5: Burkina Faso, Zimbabwe, Malawi, Senegal, Chad
+
+Country Flags (existing)
+                    ListElement { text: "United States"  }
+                    ListElement { text: "Austria"        }
+                    ListElement { text: "Azerbaijan"     }
+                    ListElement { text: "Belarus"        }
+                    ListElement { text: "Bulgaria"       }
+                    ListElement { text: "Croatia"        }
+                    ListElement { text: "Czech Republic" }
+                    ListElement { text: "Denmark"        }
+                    ListElement { text: "France"         }
+                    ListElement { text: "Germany"        }
+                    ListElement { text: "Greece"         }
+                    ListElement { text: "Italy"          }
+                    ListElement { text: "Kazakstan"      }
+                    ListElement { text: "Luxembourg"     }
+                    ListElement { text: "Poland"         }
+                    ListElement { text: "Portugal"       }
+                    ListElement { text: "Romania"        }
+                    ListElement { text: "Russia"         }
+                    ListElement { text: "Spain"          }
+                    ListElement { text: "Sweden"         }
+                    ListElement { text: "Switzerland"    }
+                    ListElement { text: "Turkey"         }
+                    ListElement { text: "Ukraine"        }
+                    ListElement { text: "United Kingdom" }

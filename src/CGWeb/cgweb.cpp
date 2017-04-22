@@ -21,7 +21,7 @@ void CGWeb::requestCGLoginVerify(QString name, QString password)
         return;
     m_thread = new QThread(this);
 
-    m_authenticator = new CGWebAuthenticator( this, name, password);
+    m_authenticator = new CGWebAuthenticator(this, name, password);
     m_authenticator->moveToThread(m_thread);
     qDebug() << "Starting the Login Verification";
 
@@ -48,19 +48,19 @@ void CGWeb::finishedVerification()
 {
     m_authenticating = false;
     emit disconnectedFromCGWeb();
-
+    if(m_thread){
+        m_thread->quit();
+        m_thread->exit(0);
+        delete m_thread;
+    }
+    if(m_authenticator){
+        delete m_authenticator;
+    }
 }
 
 
 CGWeb::~CGWeb()
 {
-    qDebug() <<"Closing CGWebApi";
-    if(m_thread){
-        m_thread->quit();
-        m_thread->exit(0);
-        m_thread->deleteLater();
-    }
-    if(m_authenticator){
-        delete m_authenticator;
-    }
+
+
 }

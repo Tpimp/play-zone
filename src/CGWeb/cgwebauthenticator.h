@@ -1,7 +1,6 @@
 #ifndef CGAUTHENTICATIONTHREAD_H
 #define CGAUTHENTICATIONTHREAD_H
 #include <QObject>
-#include <QThread>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 

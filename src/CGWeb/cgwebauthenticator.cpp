@@ -59,7 +59,7 @@ void CGWebAuthenticator::handleConnectionReply(QNetworkReply *reply)
 void CGWebAuthenticator::startVerification()
 {
     qDebug() << "Starting authentication with " << m_name << " @ " << m_password;
-    m_accessManager = new QNetworkAccessManager();
+    m_accessManager = new QNetworkAccessManager(this);
     connect(m_accessManager, &QNetworkAccessManager::finished,
             this, &CGWebAuthenticator::replyFinished, Qt::AutoConnection);
     attemptConnect();
@@ -142,6 +142,8 @@ void CGWebAuthenticator::replyFinished(QNetworkReply *reply){
             qDebug() << "Exiting the CG Web Verification";
             emit onExit();
             m_accessManager->disconnect();
+            delete m_accessManager;
+            m_accessManager = nullptr;
             break;
         }
         default: break;
@@ -191,4 +193,5 @@ void CGWebAuthenticator::sendAuthenticationRequest()
 CGWebAuthenticator::~CGWebAuthenticator()
 {
     delete m_accessManager;
+    m_accessManager = nullptr;
 }

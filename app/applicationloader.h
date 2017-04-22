@@ -8,6 +8,7 @@
 #include <QString>
 #include <QStringList>
 #include <QMap>
+#include <QVariantMap>
 
 typedef struct BindingManifest{
     QString               name;
@@ -16,6 +17,7 @@ typedef struct BindingManifest{
     //QMap<QString,QString> map;
     //QStringList           libs;
     QMap<QString,QString> plugins;
+    QVariantMap           globals;
     QStringList           resources;
     QStringList           qml;
 }BindingManifest;

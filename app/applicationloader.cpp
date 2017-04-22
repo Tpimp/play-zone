@@ -69,6 +69,10 @@ void ApplicationLoader::loadManifestComponents()
         QString full = mCachePath + mBoundManifest.plugins.value(name);
         mEngine.importPlugin(full,name,&list);
     }
+    for(QString key : mBoundManifest.globals.keys())
+    {
+        mEngine.rootContext()->setContextProperty(key,mBoundManifest.globals.value(key));
+    }
    // mEngine.addImportPath(mCachePath);
 }
 
@@ -81,7 +85,11 @@ void ApplicationLoader::loadManifestFile(BindingManifest &manifest, QString file
         if(data.length() > 2){
             QJsonDocument doc = QJsonDocument::fromJson(data);
             QJsonObject obj = doc.object();
+            // parse globals first
             // convert obj to manifest struct
+            if(obj.contains("globals")){
+                manifest.globals = obj["globals"].toObject().toVariantMap();
+            }
             QVariantMap  plugins = obj["plugins"].toObject().toVariantMap();
             for(QString key : plugins.keys()){
                 manifest.plugins.insert(key,plugins.value(key).toString());

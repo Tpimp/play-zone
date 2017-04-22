@@ -1,2 +1,2 @@
-module com.mycompany.qmlcomponents
+module com.chessgames.app
 plugin CGApp

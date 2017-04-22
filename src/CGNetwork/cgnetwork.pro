@@ -14,7 +14,8 @@ SOURCES += \
     cggame.cpp \
     cglogin.cpp \
     cgprofile.cpp \
-    cgserver.cpp
+    cgserver.cpp \
+    cgnetwork.cpp
 
 HEADERS += \
     cgnetwork_plugin.h \
@@ -22,7 +23,8 @@ HEADERS += \
     cggame.h \
     cglogin.h \
     cgprofile.h \
-    cgserver.h
+    cgserver.h \
+    cgnetwork.h
 
 DISTFILES = qmldir
 

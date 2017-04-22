@@ -10,7 +10,6 @@ SOURCES += main.cpp \
     updateserverinterface.cpp
 HEADERS += applicationloader.h\
     updateserverinterface.h
-RESOURCES += qml.qrc
 
 CONFIG(debug, debug|release) {
     buildtype = debug
@@ -61,6 +60,8 @@ TARGET = play-zone
 
 DISTFILES += \
     chessgames/chessgames.JSON
+
+RESOURCES +=
 
 
 

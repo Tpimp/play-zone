@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fonts/Arkhip_font.ttf</file>
+        <file>fonts/CHOCD TRIAL___.otf</file>
+        <file>fonts/DSEG7Classic-Regular.ttf</file>
+        <file>fonts/HelveticaNeue.ttf</file>
+        <file>fonts/helvetica-neue-bold.ttf</file>
+        <file>fonts/Rodina-Regular.otf</file>
+        <file>fonts/VAG Rounded Bold.ttf</file>
+    </qresource>
+</RCC>

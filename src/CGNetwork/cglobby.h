@@ -12,6 +12,10 @@ public:
     CGLobby(QQuickItem *parent = 0);
     ~CGLobby();
 
+
+public slots:
+   void lobbyMessage(QString lobby, QString message);
+
 protected:
     CGServer*   mServer;
 };
