@@ -4,7 +4,7 @@
 static const char  ACCEPTED_ELEMENT[]    = "ACCEPT"; // is accepted?
 static const char  USERNAME_ELEMENT[]    = "UNAME";  // User name
 static const char  PASSWORD_ELEMENT[]    = "PWD";    // Password
-static const char  USREMAIL_ELEMENT[]    = "EML";    // User Email
+static const char  USREMAIL_ELEMENT[]    = "email";    // User Email
 static const char  RANK_ELEMENT[]        = "RNK";    // Rank
 static const char  COUNTRY_ELEMENT[]     = "CNTRY";  // Country
 static const char  MESSAGE_ELEMENT[]     = "MSG";    // User Message

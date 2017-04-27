@@ -25,7 +25,7 @@ CONFIG(debug, debug|release) {
 }
 
 path_to_deploy = $$clean_path( $$_PRO_FILE_PWD_/../../app/chessgames )
-message(deploying CGWeb plugin to $$path_to_deploy/plugins/com/chessgames/app/ )
+message(deploying CGApp plugin to $$path_to_deploy/plugins/com/chessgames/app/ )
 
 copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/app/)
 first.depends = $(first) copydata

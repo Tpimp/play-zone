@@ -7,11 +7,13 @@
 #include <QJsonObject>
 #include <QGuiApplication>
 #include "json_definitions.h"
-
-CGWebAuthenticator::CGWebAuthenticator(QObject * parent, QString name, QString password)
-    : QObject(parent), m_name(name), m_password(password), m_accessManager(nullptr), m_urlCGApi( "http://www.chessgames.com/perl/user_api"),
-      m_state(WEB_API_DISCONNECTED), m_task(WEB_API_DISCONNECTED), m_running(true)
+#include <QSslConfiguration>
+CGWebAuthenticator::CGWebAuthenticator(QObject * parent)
+    : QObject(parent), m_urlCGApi( "http://www.chessgames.com/perl/user_api"),
+      m_state(WEB_API_DISCONNECTED), m_task(WEB_API_DISCONNECTED), m_running(true), m_accessManager(this)
 {
+    connect(&m_accessManager, &QNetworkAccessManager::finished,
+            this, &CGWebAuthenticator::replyFinished);
 }
 
 void CGWebAuthenticator::attemptConnect()
@@ -20,8 +22,9 @@ void CGWebAuthenticator::attemptConnect()
     QNetworkRequest request; // fill out request for get of API page
     request.setUrl(QUrl(m_urlCGApi));
     request.setRawHeader("User-Agent", "CG_PlayZone_C");
+   // request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
     qDebug() << "Beginning network request";
-    QNetworkReply *reply = m_accessManager->get(request);
+    QNetworkReply *reply = m_accessManager.get(request);
     if(reply->error()!= 0)
     {
         qDebug() << "Request Errored " << reply->errorString();
@@ -59,21 +62,18 @@ void CGWebAuthenticator::handleConnectionReply(QNetworkReply *reply)
 void CGWebAuthenticator::startVerification()
 {
     qDebug() << "Starting authentication with " << m_name << " @ " << m_password;
-    m_accessManager = new QNetworkAccessManager(this);
-    connect(m_accessManager, &QNetworkAccessManager::finished,
-            this, &CGWebAuthenticator::replyFinished, Qt::AutoConnection);
-    attemptConnect();
+    sendAuthenticationRequest();
 }
 
 bool CGWebAuthenticator::isAuthenticated(QByteArray &user_data)
 {
     QJsonDocument doc;
     QJsonParseError error;
-    qDebug() << "Recieved message " << user_data;
     doc = QJsonDocument::fromJson(user_data,&error);
     if((error.error > 0) && !error.errorString().isEmpty())
     {
         qDebug() << "Authentication parse error: \n" << error.errorString();
+        return false;
     }
     QJsonObject obj;
     obj = doc.object();
@@ -120,7 +120,10 @@ bool CGWebAuthenticator::isAuthenticated(QByteArray &user_data)
                 QString dark_c;
                 if(user_obj.contains(CGCLRDARK_ELEMENT))
                     dark_c = user_obj[CGCLRDARK_ELEMENT].toString();
-                emit userAuthenticated(m_name,"asfds@adfds.com",premium,light_c,dark_c,avatar);
+                QString email;
+                if(user_obj.contains(USREMAIL_ELEMENT))
+                    email = user_obj[USREMAIL_ELEMENT].toString();
+                emit userAuthenticated(m_name,email,premium,light_c,dark_c,avatar);
                 return true;
             }
         }
@@ -141,9 +144,6 @@ void CGWebAuthenticator::replyFinished(QNetworkReply *reply){
         case WEB_API_FINISHED:{
             qDebug() << "Exiting the CG Web Verification";
             emit onExit();
-            m_accessManager->disconnect();
-            delete m_accessManager;
-            m_accessManager = nullptr;
             break;
         }
         default: break;
@@ -156,7 +156,6 @@ QByteArray CGWebAuthenticator::hashUserData(QString name, QString pass)
     pre_hashed.append(m_name.toUpper());
     pre_hashed.append(':');
     pre_hashed.append(m_password);
-    qDebug() << "Hashing password " << m_name << " " << m_password;
     QCryptographicHash hasher(QCryptographicHash::Sha256);
     hasher.addData(pre_hashed);
     return hasher.result().toHex();
@@ -168,8 +167,9 @@ void CGWebAuthenticator::sendAuthenticationRequest()
     // Generate password hash then continue with WEB_API authentication process.
     QByteArray hashed_data(hashUserData(m_name,m_password));
     QNetworkRequest request; // fill out request for get of API page
-    request.setUrl(QUrl(m_urlCGApi));
 
+   // request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
+    request.setUrl(QUrl(m_urlCGApi));
     QUrlQuery postData;
     postData.addQueryItem("username",m_name);
     postData.addQueryItem("hashed_password",hashed_data);
@@ -180,7 +180,7 @@ void CGWebAuthenticator::sendAuthenticationRequest()
     request.setRawHeader("User-Agent", "CG_PlayZone_C");
     // build the raw header
     qDebug() << "Raw Header: " << request.rawHeaderList();
-    QNetworkReply *reply = m_accessManager->post(request, postData.toString(QUrl::FullyEncoded).toUtf8());
+    QNetworkReply *reply = m_accessManager.post(request, postData.toString(QUrl::FullyEncoded).toUtf8());
     if(reply->error()!= 0)
     {
         qDebug() << "Request Errored " << reply->errorString();
@@ -190,8 +190,12 @@ void CGWebAuthenticator::sendAuthenticationRequest()
     m_task = WEB_API_REQUESTING;
 }
 
+void CGWebAuthenticator::setCredentials(QString name, QString password)
+{
+    m_name = name;
+    m_password = password;
+}
+
 CGWebAuthenticator::~CGWebAuthenticator()
 {
-    delete m_accessManager;
-    m_accessManager = nullptr;
 }

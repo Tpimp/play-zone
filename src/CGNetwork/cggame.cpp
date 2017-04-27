@@ -1,8 +1,8 @@
 #include "cggame.h"
-
+#include "cgserver.h"
 CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent)
 {
-    mServer = CG_SERVER_S();
+    mServer = CGServer::globalServer();
     //connect(mServer, &CGServer::gameMessageReceived, this, &CGGame::processGameMessage);
 }
 

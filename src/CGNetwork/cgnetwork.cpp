@@ -54,3 +54,5 @@ void CG_User::setUserStruct(CG_User & user, QString json_settings)
     user.language = obj.value(CG_LANG).toInt();
     user.isValid = true;
 }
+
+

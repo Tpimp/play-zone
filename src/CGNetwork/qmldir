@@ -1,2 +1,4 @@
-module com.chessgames.network
+module CGNetwork
+CG_SocialMediaBtn CG_SocialMediaBtn.qml
+CG_DarkButton CG_DarkButton.qml
 plugin CGNetwork

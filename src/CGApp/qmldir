@@ -1,2 +1,2 @@
-module com.chessgames.app
+module CGApp
 plugin CGApp

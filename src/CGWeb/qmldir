@@ -1,2 +1,2 @@
-module CGWebApi
+module CGWeb
 plugin CGWeb

@@ -3,9 +3,11 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include "cgserver.h"
 CGProfile::CGProfile(QQuickItem *parent) : QQuickItem(parent)
 {
-    mServer = CG_SERVER_S();
+    mServer = CGServer::globalServer();
+    connect(mServer, &CGServer::userProfileData,this,&CGProfile::setUserProfile);
 }
 
 
@@ -79,7 +81,7 @@ bool CGProfile::isValid()
     return mUserData.isValid;
 }
 
-void CGProfile::setUserProfile(QString data)
+void CGProfile::setUserProfile(QString &data)
 {
     CG_User::setUserStruct(mUserData,data);
     emit profileSet();

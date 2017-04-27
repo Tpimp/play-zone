@@ -2,7 +2,7 @@
 #define CGLOGIN_H
 
 #include <QQuickItem>
-#include "cgserver.h"
+class CGServer;
 class CGLogin : public QQuickItem
 {
     Q_OBJECT
@@ -11,19 +11,33 @@ public:
     CGLogin(QQuickItem* parent=nullptr);
     ~CGLogin();
 signals:
-    void readyForLogin();
+    void serverReady();
     void disconnectedFromServer();
     void failedToConnectToServer();
     void userCredentialsDenied();
     void userLoggedIn();
+    void userDeniedRegister(QString reason);
+    void userRegistered();
     void profileData(QString data);
+
 public slots:
-    void connectToServer(QString ip, int port);
-    void sendAuthentication(QString name, QString password);
+    void disconnectFromServer();
+    void setServerAddress(QString ip, int port);
+    void login(QString name, QString password);
+    void attemptRegisterUser(QString name, QString password, QString email);
 
 protected:
     CGServer*  mServer;
-    QString     mUsername;
+    QString    mUsername;
+    QByteArray mHashedPass;
+    QString    mEmail;
+    QString    mConnectionString;
+    bool       mConnected;
+    int        mTries;
+protected slots:
+    void       attemptRegistration();
+    void       connectedToHost();
+    void       loginToHost();
 
 };
 

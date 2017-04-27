@@ -5,6 +5,8 @@
 #include <QJsonArray>
 //Q_DECLARE_METATYPE(QAbstractSocket::SocketError)
 
+
+Q_GLOBAL_STATIC(CGServer, CG_SERVER_S)
 CGServer::CGServer(QObject *parent) : QObject(parent)
 {
     mSocket.setReadBufferSize(49640000000);
@@ -17,6 +19,10 @@ CGServer::CGServer(QObject *parent) : QObject(parent)
 
 }
 
+CGServer* CGServer::globalServer()
+{
+    return CG_SERVER_S;
+}
 
 void CGServer::connectToHost(QString address, int port)
 {
@@ -25,15 +31,21 @@ void CGServer::connectToHost(QString address, int port)
     url.append(address);
     url.append(":");
     url.append(QString::number(port));
-
     mSocket.open(QUrl(url));
 
 }
-
+void CGServer::connectToHost(QString url)
+{
+    mSocket.open(QUrl(url));
+}
 void CGServer::disconnectFromHost()
 {
-
+    mSocket.close();
 }
+
+
+
+
 
 void CGServer::parseServerMessage(QByteArray message)
 {
@@ -67,7 +79,16 @@ void CGServer::parseServerMessage(QByteArray message)
             else{
                 emit deniedUserCredentials();
             }
-
+            break;
+        }
+        case REGISTER_USER:{
+            bool    added = params.at(0).toBool();
+            if(added){
+                emit userRegistered();
+            }
+            else{
+                emit userDeniedRegister("User exists");
+            }
             break;
         }
         default: break;

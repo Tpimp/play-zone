@@ -8,12 +8,12 @@
 #include <QQmlContext>
 #include <QDir>
 #include <QDebug>
-
+#include <QTimer>
 
 ApplicationLoader::ApplicationLoader(QQmlApplicationEngine &engine, QObject *parent)
     : QObject(parent), mEngine(engine), mServer(nullptr)
 {
-
+    mEngine.rootContext()->setContextProperty("CGUpdater", this);
 }
 
 void ApplicationLoader::connectToHttpServer(QString domain, QString app_name)
@@ -38,12 +38,6 @@ void ApplicationLoader::beginUpdateProcess()
 
 void ApplicationLoader::clearApplication()
 {
-    if(mBoundManifest.name.isEmpty()){
-        return;
-    }
-    if(mBoundManifest.plugins.isEmpty() && mBoundManifest.qml.isEmpty() && mBoundManifest.resources.isEmpty()){
-        return;
-    }
     //for each component go down and clear them out
     mEngine.clearComponentCache();
 }
@@ -57,21 +51,23 @@ bool ApplicationLoader::importQmlPlugin(QString plugin_path, QString name){
 void ApplicationLoader::loadApplicationLocal(QString manifest_path)
 {
     clearApplication();
-    loadManifestFile(mBoundManifest, mCachePath + manifest_path);
-    loadManifestComponents();
-    mEngine.load(QUrl(mBoundManifest.root));
+    BindingManifest manifest;
+    loadManifestFile(manifest, mCachePath + manifest_path);
+    loadManifestComponents(manifest);
+    mEngine.load(QUrl(manifest.root));
+    QTimer::singleShot(2800,Qt::CoarseTimer,this, &ApplicationLoader::ready);
 }
 
-void ApplicationLoader::loadManifestComponents()
+void ApplicationLoader::loadManifestComponents(BindingManifest & manifest)
 {
-    for(QString name : mBoundManifest.plugins.keys()){
+    for(QString name : manifest.plugins.keys()){
         QList<QQmlError> list;
-        QString full = mCachePath + mBoundManifest.plugins.value(name);
+        QString full = mCachePath + manifest.plugins.value(name);
         mEngine.importPlugin(full,name,&list);
     }
-    for(QString key : mBoundManifest.globals.keys())
+    for(QString key : manifest.globals.keys())
     {
-        mEngine.rootContext()->setContextProperty(key,mBoundManifest.globals.value(key));
+        mEngine.rootContext()->setContextProperty(key,manifest.globals.value(key));
     }
    // mEngine.addImportPath(mCachePath);
 }
@@ -128,6 +124,12 @@ void ApplicationLoader::setCachePath(QString path)
     }
     mCachePath = path;
     mEngine.addImportPath(mCachePath);
+}
+
+
+void ApplicationLoader::validateRelocateUpdate()
+{
+
 }
 
 ApplicationLoader::~ApplicationLoader()

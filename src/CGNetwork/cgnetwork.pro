@@ -35,7 +35,7 @@ CONFIG(debug, debug|release) {
 }
 
 path_to_deploy = $$clean_path( $$_PRO_FILE_PWD_/../../app/chessgames )
-message(deploying CGWeb plugin to $$path_to_deploy/plugins/com/chessgames/network/ )
+message(deploying CGNetwork plugin to $$path_to_deploy/plugins/com/chessgames/network/ )
 
 copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
 first.depends = $(first) copydata
@@ -58,3 +58,6 @@ unix {
     target.path = $$installPath
     INSTALLS += target qmldir
 }
+
+RESOURCES += \
+    qml.qrc

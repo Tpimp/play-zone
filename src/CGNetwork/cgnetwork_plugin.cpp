@@ -5,16 +5,17 @@
 #include "cgprofile.h"
 
 #include <qqml.h>
-#include "cgserver.h"
 #include "cgprofile.h"
+#include "cgserver.h"
 
 static QObject *cgServerSingletonFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(scriptEngine)
     Q_UNUSED(engine)
 
-    return qobject_cast<QObject*>(CG_SERVER_S());
+    return qobject_cast<QObject*>(CGServer::globalServer());
 }
+
 
 void CGNetworkPlugin::registerTypes(const char *uri)
 {
@@ -37,5 +38,7 @@ void CGNetworkPlugin::registerTypes(const char *uri)
     qmlRegisterType<CGGame>(uri, 1, 0, "CGGame");
 
     qmlRegisterSingletonType<CGServer>(uri, 1, 0, "CGServer",cgServerSingletonFactory);
+
+
 }
 

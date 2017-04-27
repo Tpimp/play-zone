@@ -2,7 +2,7 @@
 #define CGGAME_H
 
 #include <QQuickItem>
-#include "cgserver.h"
+class CGServer;
 class CGGame : public QQuickItem
 {
     Q_OBJECT

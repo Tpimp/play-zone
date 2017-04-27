@@ -10,7 +10,8 @@
 #include <QMap>
 #include <QVariantMap>
 
-typedef struct BindingManifest{
+class BindingManifest{
+public:
     QString               name;
     qreal                 version;
     QString               root;
@@ -20,7 +21,20 @@ typedef struct BindingManifest{
     QVariantMap           globals;
     QStringList           resources;
     QStringList           qml;
-}BindingManifest;
+
+    BindingManifest()
+        : version(0){}
+    ~BindingManifest()
+    {
+        name.clear();
+        version = 0;
+        root.clear();
+        plugins.clear();
+        globals.clear();
+        resources.clear();
+        qml.clear();
+    }
+};
 
 /*******************************************************
  * Application loader has the ability to load qt/qml
@@ -53,28 +67,34 @@ public:
     // Interface functions for base Qml to call
     Q_INVOKABLE void beginUpdateProcess();
     Q_INVOKABLE bool isUptoDate();
+    Q_INVOKABLE void validateRelocateUpdate();
     bool importQmlPlugin(QString plugin_path, QString name);
     void loadApplicationLocal(QString manifest_path);
 
 signals:
     void updateAvailable();
-    void updateStatusChange(bool active, int total_c, int current, QString task);
+    void downloadStatusChange(bool active, int total_c, int current, QString task);
+    void downloadFinished();
+    void updateStatusChanged(bool active, qreal percent, QString task);
+    void updateFinished();
+    void ready();
+
 
 
 protected:
     QQmlApplicationEngine&     mEngine;
     QString                    mCachePath;
-    BindingManifest            mBoundManifest;
     UpdateServerInterface *    mServer;
 
     // BMF functions
     static void loadManifestFile(BindingManifest & manifest, QString file_name);
     void requestCurrentBMF();
     void clearApplication();
-    void loadManifestComponents();
+    void loadManifestComponents(BindingManifest &manifest);
 
 
 protected slots: // connected to the server
+
 
 
 };

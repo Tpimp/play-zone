@@ -2,7 +2,7 @@
 #define CGLOBBY_H
 
 #include <QQuickItem>
-#include "cgserver.h"
+class CGServer;
 class CGLobby : public QQuickItem
 {
     Q_OBJECT

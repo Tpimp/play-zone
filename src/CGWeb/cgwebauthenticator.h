@@ -18,8 +18,9 @@ class CGWebAuthenticator : public QObject
 {
     Q_OBJECT
 public:
-    CGWebAuthenticator(QObject *parent, QString name, QString password);
+    CGWebAuthenticator(QObject *parent);
     QByteArray hashUserData(QString name, QString pass);
+
     ~CGWebAuthenticator();
 
 signals:
@@ -33,7 +34,7 @@ signals:
 
 public slots:
     void startVerification();
-
+    void setCredentials(QString name, QString password);
 private:
     // Members
     QString m_name;
@@ -42,7 +43,7 @@ private:
     WEB_API_AUTHENTICATE_STATES m_task;
     bool    m_running;
     QString m_urlCGApi;
-    QNetworkAccessManager  * m_accessManager;
+    QNetworkAccessManager  m_accessManager;
 
     //Methods
 

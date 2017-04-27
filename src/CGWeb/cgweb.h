@@ -29,8 +29,7 @@ signals:
 protected:
     bool                     m_authenticating;
     // Methods
-    QThread*                 m_thread;
-    CGWebAuthenticator*      m_authenticator;
+    CGWebAuthenticator      m_authenticator;
 protected slots:
     void finishedVerification();
 

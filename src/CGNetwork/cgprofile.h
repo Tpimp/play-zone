@@ -2,7 +2,8 @@
 #define CGPROFILE_H
 
 #include <QQuickItem>
-#include "cgserver.h"
+#include "cgnetwork.h"
+class CGServer;
 
 class CGProfile : public QQuickItem
 {
@@ -47,7 +48,7 @@ signals:
     void profileChangesSaved();
 
 public slots:
-    void setUserProfile(QString data);
+    void setUserProfile(QString &data);
     void requestUpdateProfile(QString name, QString pass);
 
 protected:

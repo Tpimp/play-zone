@@ -1,9 +1,9 @@
 #include "cglobby.h"
-
+#include "cgserver.h"
 CGLobby::CGLobby(QQuickItem *parent):
     QQuickItem(parent)
 {
-    mServer = CG_SERVER_S();
+    mServer = CGServer::globalServer();
     //connect(mServer,&CGServer::userProfileData, this, &CGLobby::);
 }
 
