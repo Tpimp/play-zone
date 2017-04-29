@@ -5,7 +5,7 @@ QT += qml quick
 CONFIG += plugin c++11
 
 TARGET = $$qtLibraryTarget($$TARGET)
-uri = com.mycompany.qmlcomponents
+uri = com.chessgames.CGApp
 
 # Input
 SOURCES += \

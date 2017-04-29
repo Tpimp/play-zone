@@ -14,7 +14,7 @@ class CGProfile : public QQuickItem
     Q_PROPERTY(bool isBanned READ isBanned)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(int elo READ elo)
-    Q_PROPERTY(int flag READ flag)
+    Q_PROPERTY(QString flag READ flag WRITE setCountry)
     Q_PROPERTY(int pieceSet  READ pieceSet)
     Q_PROPERTY(int language READ language)
     Q_PROPERTY(bool soundOn READ soundOn )
@@ -32,7 +32,7 @@ public:
     Q_INVOKABLE bool isBanned();
     Q_INVOKABLE QString name();
     Q_INVOKABLE int elo();
-    Q_INVOKABLE int flag();
+    Q_INVOKABLE QString flag();
     Q_INVOKABLE int language();
     Q_INVOKABLE int pieceSet();
     Q_INVOKABLE bool soundOn();
@@ -42,10 +42,11 @@ public:
     Q_INVOKABLE QString boardTheme();
     Q_INVOKABLE int cgdata();
     Q_INVOKABLE bool isValid();
-
+    Q_INVOKABLE void setCountry(QString country);
 signals:
     void profileSet();
     void profileChangesSaved();
+    void failedToSaveChanges();
 
 public slots:
     void setUserProfile(QString &data);

@@ -34,7 +34,7 @@ Item {
             anchors.margins: 3
             text: "Log in with social media"
             font.family: "fonts/HelveticaNeue.ttf"
-            font.pixelSize: height * .42
+            font.pixelSize: height * .44 <  width * .115 ? height *.44:width * .115
             color: "white"
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignRight

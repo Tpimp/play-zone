@@ -1,14 +1,15 @@
 import QtQuick 2.8
 import CGNetwork 1.0
-import CGWebApi 1.0
+import CGWeb 1.0
 import QtQuick.Layouts 1.1
 Rectangle{
     color: "transparent"
     id:loginView
     signal startLoading(string text, real duration, bool back);
     signal stopLoading();
-    signal connectedToHost();
+    signal loggedIn();
     property bool connectedWithCG:false
+    property alias status:statusText.text
     property string username:""
     property string password:""
     property string email:""
@@ -81,7 +82,6 @@ Rectangle{
             PropertyChanges{target:statusText;text:""}
             PropertyChanges{target:logoAnimation;running:false;}
             PropertyChanges{target:formLoader; sourceComponent:loginContainer; active:true}
-
         }
 
     ]
@@ -126,6 +126,7 @@ Rectangle{
 
         onDisconnectedFromServer: {
             loginView.state = "READY"
+            console.log(reason);
             statusText.text = "User Logout Successful"
         }
         onUserCredentialsDenied: {
@@ -140,7 +141,7 @@ Rectangle{
         }
         onUserLoggedIn: {
             loginView.stopLoading();
-            loginView.connectedToHost();
+            loginView.loggedIn();
         }
         onUserRegistered:{
             loginController.login(loginView.username,loginView.password);
@@ -188,14 +189,13 @@ Rectangle{
 
     Item{
         id:logoContainer
-        anchors.topMargin:parent.height *.1
+        anchors.topMargin:parent.height *.0125
         anchors.top:parent.top
         anchors.left:parent.left
         anchors.right: parent.right
-        height: parent.height *.45 < (parent.width*.96) ? parent.height *.44:parent.width*.96
+        height: parent.height *.52 < (parent.width*.96) ? parent.height *.52:parent.width*.96
         Image{
             id: cg_logo_hires
-            anchors.centerIn: parent
             anchors.fill: parent
             anchors.margins: 2
             source: "images/cg_logo.png"
@@ -405,6 +405,9 @@ Rectangle{
                 anchors.rightMargin: parent.width*.025
                 height: parent.height/6.1
                 KeyNavigation.tab: loginView.state == "READY" ? tf_password:tf_email
+                Component.onCompleted:{
+                    tf_username.focus = true;
+                }
             }
             CG_TextField{
                 id:tf_email
@@ -507,7 +510,7 @@ Rectangle{
                     width:parent.width/2 -2
                 }
             }
-            Row{
+            Item{
                 id:registerRow
                 anchors.left:parent.left
                 anchors.right:parent.right
@@ -515,15 +518,17 @@ Rectangle{
                 anchors.rightMargin: parent.width*.025
                 height: parent.height/6.8
                 anchors.margins: 6
-                spacing:width *.02
                 Text{
                     id:registerText
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
                     text:"Don't Have an Account?"
-                    font.pixelSize: height*.46
+                    font.pixelSize: googleButton.height * .41 <  googleButton.width * .115 ? googleButton.height *.41:googleButton.width * .115
                     anchors.top:parent.top
                     anchors.bottom: parent.bottom
+                    anchors.left:parent.left
+                    anchors.right:registerButton.left
+                    anchors.rightMargin: 8
                     anchors.margins: 2
                 }
                 CG_DarkButton{
@@ -531,8 +536,9 @@ Rectangle{
                     text.text: "Register"
                     anchors.top:parent.top
                     anchors.bottom: parent.bottom
+                    anchors.right:parent.right
                     anchors.margins: 2
-                    width:parent.width-(registerText.implicitWidth+registerRow.spacing)
+                    width:googleButton.width
                     mouse.onClicked:{
                         if(loginView.state == "REGISTER")
                         {

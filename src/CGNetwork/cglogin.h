@@ -12,7 +12,7 @@ public:
     ~CGLogin();
 signals:
     void serverReady();
-    void disconnectedFromServer();
+    void disconnectedFromServer(int reason);
     void failedToConnectToServer();
     void userCredentialsDenied();
     void userLoggedIn();

@@ -3,40 +3,49 @@
 #include <QQmlEngine>
 #include <QCryptographicHash>
 CGWeb::CGWeb(QQuickItem *parent):
-    QQuickItem(parent),  m_authenticating(false), m_authenticator(this)
+    QQuickItem(parent), m_authenticator(nullptr)
 {
-    connect(&m_authenticator, &CGWebAuthenticator::checkingConnection,
-            this, &CGWeb::checkingConnection);
-    connect(&m_authenticator, &CGWebAuthenticator::connectedCGWeb,
-            this, &CGWeb::connectedToCGWeb);
-    connect(&m_authenticator, &CGWebAuthenticator::userAuthenticated,
-            this, &CGWeb::userCGVerified);
-    connect(&m_authenticator, &CGWebAuthenticator::userDeniedDoesNotExist,
-            this, &CGWeb::userCGDeniedDoesNotExist);
-    connect(&m_authenticator, &CGWebAuthenticator::userDeniedPasswordError,
-            this, &CGWeb::userCGDeniedPasswordError);
-    connect(&m_authenticator, &CGWebAuthenticator::onExit,
-            this, &CGWeb::finishedVerification);
+
 }
 
 
 
 void CGWeb::requestCGLoginVerify(QString name, QString password)
 {
-
-    if(m_authenticating)
-        return;
-
-    m_authenticating = true;
-    m_authenticator.setCredentials(name,password);
-    m_authenticator.startVerification();
+    m_authenticator = new CGWebAuthenticator();
+    connect(m_authenticator, &CGWebAuthenticator::checkingConnection,
+            this, &CGWeb::checkingConnection);
+    connect(m_authenticator, &CGWebAuthenticator::connectedCGWeb,
+            this, &CGWeb::connectedToCGWeb);
+    connect(m_authenticator, &CGWebAuthenticator::userAuthenticated,
+            this, &CGWeb::userCGVerified);
+    connect(m_authenticator, &CGWebAuthenticator::userDeniedDoesNotExist,
+            this, &CGWeb::userCGDeniedDoesNotExist);
+    connect(m_authenticator, &CGWebAuthenticator::userDeniedPasswordError,
+            this, &CGWeb::userCGDeniedPasswordError);
+    connect(m_authenticator, &CGWebAuthenticator::onExit,
+            this, &CGWeb::finishedVerification);
+    m_authenticator->setCredentials(name,password);
+    m_authenticator->startVerification();
 
 }
 
 
 void CGWeb::finishedVerification()
 {
-    m_authenticating = false;
+    disconnect(m_authenticator, &CGWebAuthenticator::checkingConnection,
+            this, &CGWeb::checkingConnection);
+    disconnect(m_authenticator, &CGWebAuthenticator::connectedCGWeb,
+            this, &CGWeb::connectedToCGWeb);
+    disconnect(m_authenticator, &CGWebAuthenticator::userAuthenticated,
+            this, &CGWeb::userCGVerified);
+    disconnect(m_authenticator, &CGWebAuthenticator::userDeniedDoesNotExist,
+            this, &CGWeb::userCGDeniedDoesNotExist);
+    disconnect(m_authenticator, &CGWebAuthenticator::userDeniedPasswordError,
+            this, &CGWeb::userCGDeniedPasswordError);
+    disconnect(m_authenticator, &CGWebAuthenticator::onExit,
+            this, &CGWeb::finishedVerification);
+    m_authenticator = nullptr;
     emit disconnectedFromCGWeb();
 
 }

@@ -1,0 +1,4 @@
+module CGFlags
+internal CGFlagsProvider
+CountryPicker 1.0 CountryPicker.qml
+plugin CGFlags

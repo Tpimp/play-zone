@@ -27,9 +27,8 @@ signals:
     void disconnectedFromCGWeb();
 
 protected:
-    bool                     m_authenticating;
     // Methods
-    CGWebAuthenticator      m_authenticator;
+    CGWebAuthenticator    *  m_authenticator;
 protected slots:
     void finishedVerification();
 

@@ -1,9 +1,12 @@
 TEMPLATE = subdirs
-CONFIG+=ordered
+CONFIG+=    ordered
 SUBDIRS =   src/CGWeb \
             src/CGNetwork \
             src/CGApp \
-            app
+            src/CGFlags \
+            app \
+
 app.depends = src/CGWeb \
             src/CGNetwork \
+            src/CGFlags \
             src/CGApp

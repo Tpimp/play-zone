@@ -61,8 +61,7 @@ void CGWebAuthenticator::handleConnectionReply(QNetworkReply *reply)
 
 void CGWebAuthenticator::startVerification()
 {
-    qDebug() << "Starting authentication with " << m_name << " @ " << m_password;
-    sendAuthenticationRequest();
+    attemptConnect();
 }
 
 bool CGWebAuthenticator::isAuthenticated(QByteArray &user_data)
@@ -142,7 +141,9 @@ void CGWebAuthenticator::replyFinished(QNetworkReply *reply){
     {
         case WEB_API_REQUESTING:{sendAuthenticationRequest();break;}
         case WEB_API_FINISHED:{
-            qDebug() << "Exiting the CG Web Verification";
+            m_accessManager.clearAccessCache();
+            disconnect(&m_accessManager, &QNetworkAccessManager::finished,
+                    this, &CGWebAuthenticator::replyFinished);
             emit onExit();
             break;
         }

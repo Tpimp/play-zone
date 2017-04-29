@@ -8,6 +8,8 @@ CGProfile::CGProfile(QQuickItem *parent) : QQuickItem(parent)
 {
     mServer = CGServer::globalServer();
     connect(mServer, &CGServer::userProfileData,this,&CGProfile::setUserProfile);
+    connect(mServer, &CGServer::setUserData,this,&CGProfile::profileChangesSaved);
+    connect(mServer, &CGServer::failedToSetUserData,this,&CGProfile::failedToSaveChanges);
 }
 
 
@@ -31,9 +33,14 @@ int CGProfile::elo()
     return mUserData.elo;
 }
 
-int CGProfile::flag()
+QString CGProfile::flag()
 {
     return mUserData.countryFlag;
+}
+
+void CGProfile::setCountry(QString country)
+{
+    mUserData.countryFlag = country;
 }
 
 int CGProfile::language()

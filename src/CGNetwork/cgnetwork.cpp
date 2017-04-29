@@ -49,7 +49,7 @@ void CG_User::setUserStruct(CG_User & user, QString json_settings)
     user.boardTheme = obj.value(CG_BT).toString();
     user.cgbitfield = quint32(obj.value(CG_BF).toInt());
     user.coordinates = obj.value(CG_CO).toBool();
-    user.countryFlag = obj.value(CG_CF).toInt();
+    user.countryFlag = obj.value(CG_CF).toString();
     user.elo = obj.value(CG_E).toInt();
     user.language = obj.value(CG_LANG).toInt();
     user.isValid = true;

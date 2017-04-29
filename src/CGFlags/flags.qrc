@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>FlagMap.JSON</file>
+        <file>images/Africa.png</file>
+        <file>images/Africa2.png</file>
+        <file>images/America.png</file>
+        <file>images/Asia.png</file>
+        <file>images/East.png</file>
+        <file>images/Europe.png</file>
+        <file>images/Europe2.png</file>
+        <file>CountryPicker.qml</file>
+        <file>LobbyButton.qml</file>
+    </qresource>
+</RCC>

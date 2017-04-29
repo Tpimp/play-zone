@@ -15,13 +15,15 @@ public:
     static CGServer* globalServer();
 signals:
     void connectedToHost();
-    void disconnectedFromServer();
+    void disconnectedFromServer(int reason = 0);
     void userProfileData(QString &data);
     void deniedUserCredentials();
     void userRegistered();
     void userDeniedRegister(QString reason);
     void userLoggedIn();
     void userLoggedOut();
+    void setUserData();
+    void failedToSetUserData();
 
 
 public slots:
@@ -35,6 +37,7 @@ protected:
     QWebSocket  mSocket;
 protected slots:
     void parseServerMessage(QByteArray message);
+    void handleDisconnect();
 };
 
 #endif // CGSERVER_H

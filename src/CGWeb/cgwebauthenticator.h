@@ -18,7 +18,7 @@ class CGWebAuthenticator : public QObject
 {
     Q_OBJECT
 public:
-    CGWebAuthenticator(QObject *parent);
+    CGWebAuthenticator(QObject *parent = nullptr);
     QByteArray hashUserData(QString name, QString pass);
 
     ~CGWebAuthenticator();

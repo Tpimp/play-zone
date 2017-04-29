@@ -1,6 +1,5 @@
 import QtQuick 2.8
 import QtQuick.Window 2.2
-import CGWebApi 1.0
 import CGNetwork 1.0
 
 
@@ -10,15 +9,51 @@ Window {
     width: 400
     height: 600
     title: qsTr("Chessgames")
+    property var lobbyView:undefined
+    property var gameView:undefined
+
+
     Rectangle{
         id:rectBackground
         color: "#d4d4d4"
         anchors.fill: parent
+        /****************************************************************
+         *Window doesn't have states property so rectBackground acts
+         * as the root state controller
+         *
+         *
+         *
+         *
+         *
+         *****************************************************************/
+        states:[
+            State{
+                name:"LOGIN"
+                extend: ""
+                PropertyChanges{target:lobbyLoader; active:false;}
+                PropertyChanges{target:loginView; state:"READY";}
+                PropertyChanges{target:loginView; visible:true;}
+            },
+            State{
+                name:"LOBBY"
+                PropertyChanges{target:lobbyLoader; active:true;}
+                PropertyChanges{target:loginView; visible:false;}
+            },
+            State{
+                name:"GAME"
+            }
+
+        ]
+        state:"LOGIN"
     }
+
+
+
+
     CGProfile{
         id:playerProfile
-        onProfileSet: {
-
+        onProfileChangesSaved: {
+            console.log("Saved Player Profile...")
         }
     }
 
@@ -45,28 +80,46 @@ Window {
         }
     }
 
+    LoginView{
+        anchors.fill: parent
+        id:loginView
+        onStartLoading: {
+            loadingLoader.item.text.text = text;
+            loadingLoader.item.visible = true;
+            loadingLoader.item.duration = duration;
+            loadingLoader.item.back.visible = back
+        }
+        onStopLoading: {
+            loadingLoader.item.visible = false;
+        }
+        onLoggedIn: {
+            rectBackground.state = "LOBBY"
+        }
+    }
+
     Loader{
-        id:loginLoader
-        sourceComponent: LoginView{
-            anchors.fill: parent
-            onStartLoading: {
-                loadingLoader.item.text.text = text;
-                loadingLoader.item.visible = true;
-                loadingLoader.item.duration = duration;
-                loadingLoader.item.back.visible = back
+        id:lobbyLoader
+        sourceComponent:LobbyView{
+            id:lobbyView
+                anchors.fill: parent
+                onLogout:{
+                    rectBackground.state = "LOGIN";
+                    loginView.status = "User Logout Successful";
+                }
+                onRequestUpdateProfile:{
+                    playerProfile.requestUpdateProfile(loginView.username,loginView.password);
+                    console.log("Sent Request to update proflie.")
+                }
             }
-            onStopLoading: {
-                loadingLoader.item.visible = false;
-            }
-            onConnectedToHost: {
-                console.log("Moving into Lobby View")
+        onLoaded: {
+            if(lobbyLoader.item != undefined){
+                lobbyLoader.item.setProfile(playerProfile);
+                lobbyLoader.item.parent = rectBackground
             }
         }
 
-        active:  true;
-        anchors.fill: parent
+        active:false
     }
-
 
 
 

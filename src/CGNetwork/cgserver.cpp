@@ -14,7 +14,7 @@ CGServer::CGServer(QObject *parent) : QObject(parent)
     connect(&mSocket, &QWebSocket::connected, this, &CGServer::connectedToHost);
     connect(&mSocket, static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),
             this, &CGServer::socketErrored);
-    connect(&mSocket, &QWebSocket::disconnected, this, &CGServer::disconnectedFromServer);
+    connect(&mSocket, &QWebSocket::disconnected, this, &CGServer::handleDisconnect);
     connect(&mSocket, &QWebSocket::binaryMessageReceived, this, &CGServer::parseServerMessage);
 
 }
@@ -44,6 +44,10 @@ void CGServer::disconnectFromHost()
 }
 
 
+void CGServer::handleDisconnect()
+{
+    emit disconnectedFromServer(0);
+}
 
 
 
@@ -91,6 +95,16 @@ void CGServer::parseServerMessage(QByteArray message)
             }
             break;
         }
+        case SET_USER_DATA:{
+            bool    set = params.at(0).toBool();
+            if(set){
+                emit setUserData();
+            }
+            else{
+                emit failedToSetUserData();
+            }
+            break;
+        }
         default: break;
     }
 
@@ -100,6 +114,7 @@ void CGServer::parseServerMessage(QByteArray message)
 void CGServer::socketErrored(QAbstractSocket::SocketError err)
 {
     qDebug() << "Server socket errored "<< mSocket.errorString();
+    emit disconnectedFromServer(3);
 }
 
 
