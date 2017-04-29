@@ -10,7 +10,7 @@
 #include <QSslConfiguration>
 CGWebAuthenticator::CGWebAuthenticator(QObject * parent)
     : QObject(parent), m_urlCGApi( "http://www.chessgames.com/perl/user_api"),
-      m_state(WEB_API_DISCONNECTED), m_task(WEB_API_DISCONNECTED), m_running(true), m_accessManager(this)
+      m_state(WEB_API_DISCONNECTED), m_task(WEB_API_DISCONNECTED),  m_accessManager(this)
 {
     connect(&m_accessManager, &QNetworkAccessManager::finished,
             this, &CGWebAuthenticator::replyFinished);
@@ -55,7 +55,6 @@ void CGWebAuthenticator::handleConnectionReply(QNetworkReply *reply)
         qDebug() << "User denied reply" << reply->rawHeaderList();
         emit userDeniedNetworkError();
         m_state = WEB_API_FINISHED;
-        m_running = false;
     }
 }
 
@@ -149,6 +148,7 @@ void CGWebAuthenticator::replyFinished(QNetworkReply *reply){
         }
         default: break;
     }
+    reply->deleteLater();
 }
 
 QByteArray CGWebAuthenticator::hashUserData(QString name, QString pass)

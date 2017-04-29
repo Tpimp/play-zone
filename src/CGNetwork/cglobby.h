@@ -10,11 +10,13 @@ class CGLobby : public QQuickItem
 
 public:
     CGLobby(QQuickItem *parent = 0);
+    void matchedWithAnotherPlayer(QString name, int elo, QString country, bool color);
     ~CGLobby();
 
 
 public slots:
    void lobbyMessage(QString lobby, QString message);
+   void joinMatchMaking(int type);
 
 protected:
     CGServer*   mServer;

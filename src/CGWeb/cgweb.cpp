@@ -45,7 +45,9 @@ void CGWeb::finishedVerification()
             this, &CGWeb::userCGDeniedPasswordError);
     disconnect(m_authenticator, &CGWebAuthenticator::onExit,
             this, &CGWeb::finishedVerification);
+    m_authenticator->deleteLater();
     m_authenticator = nullptr;
+
     emit disconnectedFromCGWeb();
 
 }

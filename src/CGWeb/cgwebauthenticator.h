@@ -41,7 +41,6 @@ private:
     QString m_password;
     WEB_API_AUTHENTICATE_STATES m_state;
     WEB_API_AUTHENTICATE_STATES m_task;
-    bool    m_running;
     QString m_urlCGApi;
     QNetworkAccessManager  m_accessManager;
 

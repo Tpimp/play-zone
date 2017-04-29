@@ -27,7 +27,7 @@ Rectangle {
                 width:height
                 source: "image://flags/"+modelData
                 fillMode: Image.PreserveAspectFit
-
+                smooth:true
             }
             Text{
                 anchors.left:flag.right

@@ -103,12 +103,16 @@ Window {
             id:lobbyView
                 anchors.fill: parent
                 onLogout:{
+                    loginView.disconnectFromHost();
                     rectBackground.state = "LOGIN";
                     loginView.status = "User Logout Successful";
                 }
                 onRequestUpdateProfile:{
                     playerProfile.requestUpdateProfile(loginView.username,loginView.password);
                     console.log("Sent Request to update proflie.")
+                }
+                onJoinMatchMaking:{
+                    console.log("Joining Matchmaking")
                 }
             }
         onLoaded: {

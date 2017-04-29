@@ -8,6 +8,10 @@ Rectangle{
     signal startLoading(string text, real duration, bool back);
     signal stopLoading();
     signal loggedIn();
+    function disconnectFromHost(){
+        loginController.disconnectFromServer()
+    }
+
     property bool connectedWithCG:false
     property alias status:statusText.text
     property string username:""

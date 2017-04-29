@@ -1,6 +1,6 @@
 import QtQuick 2.8
 import CGFlags 1.0
-
+import CGNetwork 1.0
 Rectangle {
     id:root
     anchors.fill: parent
@@ -8,12 +8,32 @@ Rectangle {
     signal logout()
     signal requestUpdateProfile()
     property var userProfile:undefined
+    signal joinMatchMaking();
     function setProfile(profile){
         userProfile = profile;
         flag.source = "image://flags/" +root.userProfile.flag;
         eloText.text = root.userProfile.elo
         username.text = root.userProfile.name
     }
+
+    CGLobby{
+        id: lobbyController
+    }
+
+    /*****************************************************************************
+    *This Begins The User Interface
+    * The Lobby View consists of:
+    *
+    *  [CONTENT DESCRIPTION]
+    *
+    *
+    *  [SIZE AND LAYOUT]
+    *
+    *******************************************************************************/
+
+
+
+
     Image{
         id:background
         anchors.fill: parent
@@ -62,6 +82,7 @@ Rectangle {
                 anchors.margins: 8
                 width:height
                 fillMode: Image.PreserveAspectFit
+                smooth:true
                 MouseArea{
                     anchors.fill: parent
                     onClicked:countryPicker.visible = true;
@@ -100,7 +121,10 @@ Rectangle {
         width:height
         anchors.topMargin:8
         minuteText:"1"
-
+        mouse.onClicked: {
+            lobbyController.joinMatchMaking(0)
+            root.joinMatchMaking();
+        }
     }
 
     LobbyButton{
@@ -111,6 +135,10 @@ Rectangle {
         height:oneButton.width
         width:oneButton.width
         minuteText:"5"
+        mouse.onClicked: {
+            lobbyController.joinMatchMaking(1)
+            root.joinMatchMaking();
+        }
 
     }
 
@@ -122,6 +150,10 @@ Rectangle {
         height:oneButton.width
         width:oneButton.width
         minuteText:"30"
+        mouse.onClicked: {
+            lobbyController.joinMatchMaking(2)
+            root.joinMatchMaking();
+        }
 
     }
 
