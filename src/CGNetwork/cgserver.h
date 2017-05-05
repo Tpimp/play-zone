@@ -13,6 +13,7 @@ public:
     explicit CGServer(QObject *parent = 0);
     ~CGServer();
     static CGServer* globalServer();
+
 signals:
     void connectedToHost();
     void disconnectedFromServer(int reason = 0);
@@ -25,6 +26,9 @@ signals:
     void setUserData();
     void failedToSetUserData();
 
+    void lobbyStartedMatchmaking(int type);
+    void lobbyFoundMatch(QString  name, int elo, QString country, bool arewhite);
+
 
 public slots:
     void connectToHost(QString address, int port);
@@ -35,6 +39,7 @@ public slots:
 
 protected:
     QWebSocket  mSocket;
+
 protected slots:
     void parseServerMessage(QByteArray message);
     void handleDisconnect();

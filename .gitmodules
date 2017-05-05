@@ -1,0 +1,3 @@
+[submodule "src/CGEngine/chess.js"]
+	path = src/CGEngine/chess.js
+	url = https://github.com/jhlywa/chess.js

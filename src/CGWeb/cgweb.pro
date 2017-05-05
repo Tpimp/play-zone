@@ -27,8 +27,12 @@ CONFIG(debug, debug|release) {
 }
 
 path_to_deploy = $$clean_path( $$_PRO_FILE_PWD_/../../app/chessgames )
-message(deploying CGWeb plugin to $$path_to_deploy/plugins/com/chessgames/web/ )
-copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
+#message(deploying CGWeb plugin to $$path_to_deploy/plugins/com/chessgames/web/ )
+
+win32:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
+win64:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
+unix:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.so) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
+
 first.depends = $(first) copydata
 export(first.depends)
 export(copydata.commands)
@@ -49,3 +53,6 @@ unix {
     target.path = $$installPath
     INSTALLS += target qmldir
 }
+
+win32:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/web/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/qmldir)
+win64:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/web/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/qmldir)

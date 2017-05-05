@@ -14,11 +14,16 @@ Window {
 
 
     Rectangle{
-        id:rectBackground
+        id:app
         color: "#d4d4d4"
         anchors.fill: parent
+        Image{
+            anchors.fill: parent
+            source:"/images/loginBG.png"
+        }
+
         /****************************************************************
-         *Window doesn't have states property so rectBackground acts
+         *Window doesn't have states property so app acts
          * as the root state controller
          *
          *
@@ -29,9 +34,9 @@ Window {
         states:[
             State{
                 name:"LOGIN"
-                extend: ""
-                PropertyChanges{target:lobbyLoader; active:false;}
                 PropertyChanges{target:loginView; state:"READY";}
+                //PropertyChanges{target:gameLoader; active:false;}
+                PropertyChanges{target:lobbyLoader; active:false;}
                 PropertyChanges{target:loginView; visible:true;}
             },
             State{
@@ -41,6 +46,9 @@ Window {
             },
             State{
                 name:"GAME"
+                extend:"LOBBY"
+                PropertyChanges{target:gameLoader; active:true;}
+//                PropertyChanges{target:gameView; visible:true;}
             }
 
         ]
@@ -57,14 +65,8 @@ Window {
         }
     }
 
-    Item{
-        id: systemState
-        states:[
-            State{
-                name:""
-            }
-        ]
-    }
+
+
 
     Loader{
         id:loadingLoader
@@ -87,13 +89,12 @@ Window {
             loadingLoader.item.text.text = text;
             loadingLoader.item.visible = true;
             loadingLoader.item.duration = duration;
-            loadingLoader.item.back.visible = back
         }
         onStopLoading: {
             loadingLoader.item.visible = false;
         }
         onLoggedIn: {
-            rectBackground.state = "LOBBY"
+            app.state = "LOBBY"
         }
     }
 
@@ -104,7 +105,7 @@ Window {
                 anchors.fill: parent
                 onLogout:{
                     loginView.disconnectFromHost();
-                    rectBackground.state = "LOGIN";
+                    app.state = "LOGIN";
                     loginView.status = "User Logout Successful";
                 }
                 onRequestUpdateProfile:{
@@ -112,16 +113,41 @@ Window {
                     console.log("Sent Request to update proflie.")
                 }
                 onJoinMatchMaking:{
-                    console.log("Joining Matchmaking")
+                    gameLoader.active = true;
+                    /*loadingLoader.item.text.text = "Finding Opponent...";
+                    loadingLoader.item.visible = true;
+                    loadingLoader.item.duration = 650;
+                    loadingLoader.item.back.visible = true;*/
+                }
+                onPlayerMatched:{
+                    app.state = "GAME";
+                    loadingLoader.item.text.text = "";
+                    loadingLoader.item.visible = false;
                 }
             }
         onLoaded: {
             if(lobbyLoader.item != undefined){
                 lobbyLoader.item.setProfile(playerProfile);
-                lobbyLoader.item.parent = rectBackground
+                lobbyLoader.item.parent = app
             }
         }
+        active:false
+    }
 
+    Loader{
+        id:gameLoader
+        anchors.fill: parent
+        sourceComponent: GameView{
+            id:gameView
+            visible:true
+        }
+        onLoaded: {
+            if(gameLoader.item != undefined){
+                //gameLoader.item.parent = app
+                gameLoader.item.setProfile(playerProfile)
+                gameLoader.item.startNewGame("Tpimp",1200,"United States", false, playerProfile.avatar);
+            }
+        }
         active:false
     }
 

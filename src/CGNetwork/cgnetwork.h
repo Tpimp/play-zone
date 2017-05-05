@@ -18,6 +18,7 @@ public:
     QString  boardTheme = "";
     quint32  cgbitfield = 0;
     bool     isValid = false;
+    QString  avatar = "";
     CG_User& operator =(const CG_User & user)
     {
         loggedIn = user.loggedIn;
@@ -34,6 +35,7 @@ public:
         boardTheme = user.boardTheme;
         cgbitfield = user.cgbitfield;
         isValid = user.isValid;
+        avatar = user.avatar;
         return *this;
     }
     static void setUserStruct(CG_User & user, QString json_settings);

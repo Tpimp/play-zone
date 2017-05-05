@@ -5,7 +5,7 @@ QT += core gui qml quick
 CONFIG += plugin c++11
 
 TARGET = $$qtLibraryTarget($$TARGET)
-uri = com.chessgames.CGFlags
+uri = com.chessgames.flags
 
 # Input
 SOURCES += \
@@ -28,9 +28,14 @@ CONFIG(debug, debug|release) {
 }
 
 path_to_deploy = $$clean_path( $$_PRO_FILE_PWD_/../../app/chessgames )
-message(deploying CGFlags plugin to $$path_to_deploy/plugins/com/chessgames/flags/ )
+#message(deploying CGFlags plugin to $$path_to_deploy/plugins/com/chessgames/flags/ )
 
-copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/)
+win32:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/)
+win64:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/)
+unix:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.so) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/)
+
+
+
 first.depends = $(first) copydata
 export(first.depends)
 export(copydata.commands)
@@ -51,6 +56,10 @@ unix {
     target.path = $$installPath
     INSTALLS += target qmldir
 }
+
+
+win32:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/qmldir)
+win64:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/qmldir)
 
 RESOURCES += \
     flags.qrc

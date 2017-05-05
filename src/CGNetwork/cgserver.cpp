@@ -9,7 +9,7 @@
 Q_GLOBAL_STATIC(CGServer, CG_SERVER_S)
 CGServer::CGServer(QObject *parent) : QObject(parent)
 {
-    mSocket.setReadBufferSize(49640000000);
+    mSocket.setReadBufferSize(4964000000);
     //qRegisterMetaType(QAbstractSocket::SocketError);
     connect(&mSocket, &QWebSocket::connected, this, &CGServer::connectedToHost);
     connect(&mSocket, static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),
@@ -69,13 +69,7 @@ void CGServer::parseServerMessage(QByteArray message)
             }
 
             bool    verified = params.at(0).toBool();
-            if( verified){
-                if(params.count() < 2){
-                    // bad message
-                    qDebug() << "Error receiving User Data, after Verified";
-                    bool test(params.count() < 2);
-                    Q_ASSERT(test);
-                }
+            if(verified){
                 QString data_str = params.at(1).toString();
                 emit userProfileData(data_str);
                 emit userLoggedIn();

@@ -4,5 +4,7 @@
         <file>CG_SocialMediaBtn.qml</file>
         <file>CG_DarkButton.qml</file>
         <file>CG_TextField.qml</file>
+        <file>CG_PlayerBanner.qml</file>
+        <file>CG_Emblem.qml</file>
     </qresource>
 </RCC>

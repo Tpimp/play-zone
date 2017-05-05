@@ -54,6 +54,7 @@ static const char  CGUSERNAME_ELEMENT[]  = "username"; // Chess Games username
 static const char  CGPREMIUM_ELEMENT[]   = "premium"; // Chess Games premium
 static const char  CGCLRDARK_ELEMENT[]   = "color_dark"; // Chess Games color dark
 static const char  CGCLRLIGHT_ELEMENT[]  = "color_light"; // Chess Games color light
+static const char  CGCLRFAVE_ELEMENT[]  = "color_fave"; // Chess Games color light
 
 
 #endif // JSON_DEFINTIONS_H

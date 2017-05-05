@@ -9,12 +9,22 @@ class CGGame : public QQuickItem
     Q_DISABLE_COPY(CGGame)
 public:
     CGGame(QQuickItem* parent = nullptr);
+    Q_INVOKABLE bool canMakeMove();
+    Q_INVOKABLE void startNewGame(QString opponent, QString country, int elo, bool arewhite);
     ~CGGame();
-signals:
 
+signals:
+    void opponentForfeit();
+    void opponentMove(QString move);
 public slots:
     void processGameMessage(int func, QByteArray data);
+    void makeMove(QString move);
 protected:
+    int       mOpponentElo;
+    QString   mOpponent;
+    QString   mOpponentCountry;
+    bool      mCurrentTurn;
+    bool      mPlayerColor;
     CGServer *mServer;
 };
 

@@ -7,7 +7,6 @@ Item {
     property real ballWidth:width/5 < height/7 ? width/5:height/7
     anchors.fill: parent
     property alias ballSpacing:ballRow.spacing
-    property alias back:btn_back
     Rectangle{
         id:background
         anchors.fill: parent
@@ -16,7 +15,6 @@ Item {
         Row{
             id:ballRow
             anchors.fill: parent
-            anchors.topMargin: btn_back.height
             spacing: 4
             anchors.margins: 4
             CG_LoadingBall{
@@ -70,39 +68,6 @@ Item {
         styleColor: "darkgrey"
         font.pixelSize:parent.height * .056 < parent.width*.056 ? parent.height * .056:parent.width*.056
 
-    }
-
-    CG_DarkButton
-    {
-        id: btn_back
-        anchors.top:parent.top
-        anchors.left:parent.left
-        width:parent.width/3
-        height:parent.height*.11
-        text.text:"Back"
-        text.font.pixelSize: text.height * .45
-        text.color: "white"
-        border.color: "#AA000000"
-        border.width: 2
-        color:"transparent"
-        gradient: Gradient
-        {
-            //GradientStop { position: 0.0; color: control.pressed ? Definitions.BUTTON_COLOR_ON_CLICK : Definitions.TOP_COLOR_FOR_BUTTON }
-            //GradientStop { position: 0.5; color: control.pressed ? Definitions.BUTTON_COLOR_ON_CLICK : Definitions.BOTTOM_COLOR_FOR_BUTTON}
-            GradientStop { position: 0.0; color: btn_back.mouse.pressed ? "#AA000000" : "#11000000" }
-            GradientStop { position: 1.0; color: btn_back.mouse.pressed ? "#11000000" : "#AA000000" }
-        }
-        Image
-        {
-            source: "images/cg_leftArrow.png"
-            anchors.left:parent.left
-            anchors.top:parent.top
-            anchors.bottom:parent.bottom
-            anchors.margins: 4
-            width:height
-            opacity: 1.0
-            fillMode: Image.PreserveAspectFit
-        }
     }
     onVisibleChanged: {
         if(visible){

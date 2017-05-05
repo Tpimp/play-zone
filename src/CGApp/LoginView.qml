@@ -12,12 +12,25 @@ Rectangle{
         loginController.disconnectFromServer()
     }
 
-    property bool connectedWithCG:false
+    property string connectionState:""
     property alias status:statusText.text
     property string username:""
     property string password:""
     property string email:""
     property var form: undefined
+
+    function loginToCG(user,password){
+        loginView.username = user;
+        loginView.password = password;
+        loginView.connectionState = "LOG";
+        loginView.state = "LOGIN";
+        loginController.login(user,password);
+    }
+    function registerUser(user, password, email){
+        loginView.connectionState = "REG";
+        loginController.attemptRegisterUser(user,password,email);
+    }
+
     function setRegisterForm()
     {
         loginView.form.email.height = loginView.form.height/6.1;
@@ -82,10 +95,10 @@ Rectangle{
         State{
             name:"LOGIN"
             PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
+            PropertyChanges{target:formLoader; sourceComponent:loginContainer; active:true}
             StateChangeScript{script:loginView.startLoading("Connecting to Chessgames Server...",850,false);}
             PropertyChanges{target:statusText;text:""}
             PropertyChanges{target:logoAnimation;running:false;}
-            PropertyChanges{target:formLoader; sourceComponent:loginContainer; active:true}
         }
 
     ]
@@ -104,8 +117,8 @@ Rectangle{
     CGWebConnection{
         id: webController
         onUserCGDeniedDoesNotExist: {
-            loginView.connectedWithCG = false;
-            loginController.login(username, password)
+            loginView.state = "READY"
+            statusText.text = "Chessgames User Does Not Exist."
         }
         onUserCGDeniedPasswordError: {
             loginView.state = "READY"
@@ -113,9 +126,11 @@ Rectangle{
         }
 
         onUserCGVerified: {
-            loginView.connectedWithCG = true;
-            loginView.email = email;
-            loginController.login(loginView.username,loginView.password);
+            if(loginView.connectionState == "LOG"){
+                playerProfile.avatar = avatar;
+                loginView.email = email;
+                loginController.attemptRegisterUser(loginView.username,loginView.password,email);
+            }
         }
     }
 
@@ -130,21 +145,14 @@ Rectangle{
 
         onDisconnectedFromServer: {
             loginView.state = "READY"
-            console.log(reason);
             statusText.text = "User Logout Successful"
         }
         onUserCredentialsDenied: {
-            if(loginView.connectedWithCG){
-                console.log("Registering OG CG member");
-                loginController.attemptRegisterUser(loginView.username,loginView.password,loginView.email);
-            }
-            else{
-                loginView.state = "READY"
-                statusText.text = "User Credentials Were Denied"
-            }
+            webController.requestCGLoginVerify(loginView.username,loginView.password);
         }
         onUserLoggedIn: {
             loginView.stopLoading();
+            loginView.state = "READY"
             loginView.loggedIn();
         }
         onUserRegistered:{
@@ -261,10 +269,10 @@ Rectangle{
         Loader{
             id:formLoader
             anchors.centerIn: parent
-            onSourceComponentChanged: {
+            onLoaded: {
                 if(formLoader.item != undefined){
-                    loginView.form =formLoader.item;
                     formLoader.item.parent = buttonContainer
+                    loginView.form = formLoader.item;
                     formLoader.item.scale = 1;
                 }
             }
@@ -438,11 +446,10 @@ Rectangle{
                 height: parent.height/6.1
                 KeyNavigation.tab: tf_confirm_password
                 Keys.onReturnPressed: {
-                    if(loginView.state == "READY"){
-                        loginView.username = tf_username.text;
-                        loginView.password = tf_password.text;
-                        webController.requestCGLoginVerify(tf_username.text,tf_password.text)
-                        loginView.state = "LOGIN";
+                    if(tf_username.length > 0 && tf_password.length > 0){
+                        if(loginView.state == "READY"){
+                            loginView.loginToCG(tf_username.text,tf_password.text)
+                        }
                     }
                 }
             }
@@ -478,10 +485,11 @@ Rectangle{
                 anchors.rightMargin: parent.width*.025
                 height: parent.height/6.1
                 mouse.onClicked:{
-                    loginView.username = tf_username.text;
-                    loginView.password = tf_password.text;
-                    webController.requestCGLoginVerify(tf_username.text,tf_password.text)
-                    loginView.state = "LOGIN";
+                    if(tf_username.length > 0 && tf_password.length > 0){
+                        if(loginView.state == "READY"){
+                            loginView.loginToCG(tf_username.text,tf_password.text)
+                        }
+                    }
                 }
             }
             Row{
@@ -546,10 +554,16 @@ Rectangle{
                     mouse.onClicked:{
                         if(loginView.state == "REGISTER")
                         {
-                            loginView.email = tf_email.text;
-                            loginView.username = tf_username.text;
-                            loginView.password = tf_password.text;
-                            loginController.attemptRegisterUser(tf_username.text,tf_password.text,tf_email.text);
+                            if(tf_confirm_password.text == tf_password.text){
+                                loginView.state = "LOGIN"
+                                loginView.email = tf_email.text;
+                                loginView.username = tf_username.text;
+                                loginView.password = tf_password.text;
+                                loginController.attemptRegisterUser(tf_username.text,tf_password.text,tf_email.text);
+                            }
+                            else{
+                                statusText.text = "Password fields do not match."
+                            }
                         }
                         else
                         {

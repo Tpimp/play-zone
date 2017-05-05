@@ -8,6 +8,7 @@ static const char CG_E[] = "EL";  // Elo
 static const char CG_CF[] = "CF"; // Country flag
 static const char CG_PS[] = "PS"; // Piece Set
 static const char CG_LANG[] ="LA";// Language
+static const char CG_AV[] = "AV";// Avatar
 static const char CG_SND[] = "SN"; // sound
 static const char CG_CO[] = "CO"; // Co-ordinates
 static const char CG_AR[] = "AR"; // Arrows
@@ -29,6 +30,7 @@ QString CG_User::serializeUser(const CG_User &user)
         obj[CG_CF] = user.countryFlag;
         obj[CG_E] = user.elo;
         obj[CG_LANG] = user.language;
+        obj[CG_AV] = user.avatar;
         QJsonDocument doc;
         doc.setObject(obj);
         out = doc.toJson();
@@ -52,6 +54,7 @@ void CG_User::setUserStruct(CG_User & user, QString json_settings)
     user.countryFlag = obj.value(CG_CF).toString();
     user.elo = obj.value(CG_E).toInt();
     user.language = obj.value(CG_LANG).toInt();
+   // user.avatar = obj.value(CG_AV).toString();
     user.isValid = true;
 }
 

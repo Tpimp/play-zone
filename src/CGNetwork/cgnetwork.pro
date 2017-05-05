@@ -26,7 +26,8 @@ HEADERS += \
     cgserver.h \
     cgnetwork.h
 
-DISTFILES = qmldir
+DISTFILES = qmldir \
+    CG_PlayerBanner.qml
 
 CONFIG(debug, debug|release) {
     buildtype = debug
@@ -37,7 +38,13 @@ CONFIG(debug, debug|release) {
 path_to_deploy = $$clean_path( $$_PRO_FILE_PWD_/../../app/chessgames )
 message(deploying CGNetwork plugin to $$path_to_deploy/plugins/com/chessgames/network/ )
 
-copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
+
+win32:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
+win64:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
+unix:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.so) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
+
+
+
 first.depends = $(first) copydata
 export(first.depends)
 export(copydata.commands)
@@ -58,6 +65,10 @@ unix {
     target.path = $$installPath
     INSTALLS += target qmldir
 }
+
+win32:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/network/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/qmldir)
+win64:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/network/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/qmldir)
+
 
 RESOURCES += \
     qml.qrc

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="chess.js">chess.js/chess.js</file>
+        <file>CG_Board.qml</file>
+    </qresource>
+</RCC>

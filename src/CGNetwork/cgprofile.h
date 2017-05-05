@@ -22,12 +22,15 @@ class CGProfile : public QQuickItem
     Q_PROPERTY(bool arrows READ arrows )
     Q_PROPERTY(bool autoPromote READ autoPromote )
     Q_PROPERTY(QString boardTheme READ boardTheme )
+    Q_PROPERTY(QString avatar READ avatar  WRITE setAvatar)
     Q_PROPERTY(int cgdata READ cgdata)
     Q_PROPERTY(bool isValid READ isValid )
+    Q_PROPERTY(bool color READ color WRITE setColor MEMBER mColor)
 
 public:
     CGProfile(QQuickItem * parent = nullptr);
     ~CGProfile();
+    Q_INVOKABLE bool color();
     Q_INVOKABLE bool isLoggedIn();
     Q_INVOKABLE bool isBanned();
     Q_INVOKABLE QString name();
@@ -42,7 +45,10 @@ public:
     Q_INVOKABLE QString boardTheme();
     Q_INVOKABLE int cgdata();
     Q_INVOKABLE bool isValid();
+    Q_INVOKABLE QString avatar();
     Q_INVOKABLE void setCountry(QString country);
+    Q_INVOKABLE void setColor(bool color);
+    Q_INVOKABLE void setAvatar(QString avatar);
 signals:
     void profileSet();
     void profileChangesSaved();
@@ -51,8 +57,8 @@ signals:
 public slots:
     void setUserProfile(QString &data);
     void requestUpdateProfile(QString name, QString pass);
-
 protected:
+    bool       mColor;
     CGServer  *mServer;
     CG_User    mUserData;
 };

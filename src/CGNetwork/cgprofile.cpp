@@ -12,6 +12,10 @@ CGProfile::CGProfile(QQuickItem *parent) : QQuickItem(parent)
     connect(mServer, &CGServer::failedToSetUserData,this,&CGProfile::failedToSaveChanges);
 }
 
+bool CGProfile::color()
+{
+    return mColor;
+}
 
 bool CGProfile::isLoggedIn()
 {
@@ -68,6 +72,11 @@ bool CGProfile::arrows()
     return mUserData.arrows;
 }
 
+QString CGProfile::avatar()
+{
+    return mUserData.avatar;
+}
+
 bool CGProfile::autoPromote()
 {
     return mUserData.autoPromote;
@@ -86,6 +95,16 @@ int CGProfile::cgdata()
 bool CGProfile::isValid()
 {
     return mUserData.isValid;
+}
+
+void CGProfile::setAvatar(QString avatar)
+{
+    mUserData.avatar = avatar;
+}
+
+void CGProfile::setColor(bool color)
+{
+    mColor = color;
 }
 
 void CGProfile::setUserProfile(QString &data)
