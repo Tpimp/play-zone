@@ -27,7 +27,7 @@ signals:
     void failedToSetUserData();
 
     void lobbyStartedMatchmaking(int type);
-    void lobbyFoundMatch(QString  name, int elo, QString country, bool arewhite);
+    void lobbyFoundMatch(QString  name, int elo, QString country, QString avatar, bool arewhite);
 
 
 public slots:

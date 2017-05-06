@@ -1,4 +1,7 @@
 module CGNetwork
 CG_SocialMediaBtn CG_SocialMediaBtn.qml
 CG_DarkButton CG_DarkButton.qml
+CG_PlayerBanner CG_PlayerBanner.qml
+CG_Emblem CG_Emblem.qml
+CG_TextField CG_TextField.qml
 plugin CGNetwork

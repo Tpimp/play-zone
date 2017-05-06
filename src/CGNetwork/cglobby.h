@@ -14,7 +14,7 @@ public:
     ~CGLobby();
 
 signals:
-    void matchedWithAnotherPlayer(QString name, int elo, QString country, bool color);
+    void matchedWithAnotherPlayer(QString name, int elo, QString country, QString avatar, bool color);
 
 public slots:
    void lobbyMessage(QString lobby, QString message);

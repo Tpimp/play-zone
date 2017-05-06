@@ -8,6 +8,7 @@ CGLobby::CGLobby(QQuickItem *parent):
     QQuickItem(parent)
 {
     mServer = CGServer::globalServer();
+    connect(mServer,&CGServer::lobbyFoundMatch, this, &CGLobby::matchedWithAnotherPlayer);
     //connect(mServer,&CGServer::userProfileData, this, &CGLobby::);
 }
 

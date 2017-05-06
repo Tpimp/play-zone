@@ -89,6 +89,17 @@ void CGServer::parseServerMessage(QByteArray message)
             }
             break;
         }
+        case MATCHED_PLAYER:{
+            QString player_data = params.at(0).toString();
+            QJsonDocument doc = QJsonDocument::fromJson(player_data.toLocal8Bit());
+            QJsonObject obj = doc.object();
+            QString name = obj.value("name").toString();
+            int elo = obj.value("elo").toInt();
+            bool color = obj.value("color").toBool();
+            QString country = obj.value("flag").toString();
+            QString avatar = obj.value("avatar").toString();
+            emit lobbyFoundMatch(name,elo,country,avatar,color);
+        }
         case SET_USER_DATA:{
             bool    set = params.at(0).toBool();
             if(set){

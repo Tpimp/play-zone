@@ -11,6 +11,12 @@ Window {
     title: qsTr("Chessgames")
     property var lobbyView:undefined
     property var gameView:undefined
+    property string opponent:""
+    property real opelo:0
+    property string opavatar:""
+    property string opflag:""
+    property bool playerColor:false
+
 
 
     Rectangle{
@@ -113,16 +119,21 @@ Window {
                     console.log("Sent Request to update proflie.")
                 }
                 onJoinMatchMaking:{
-                    gameLoader.active = true;
-                    /*loadingLoader.item.text.text = "Finding Opponent...";
+                    loadingLoader.item.text.text = "Finding Opponent...";
                     loadingLoader.item.visible = true;
                     loadingLoader.item.duration = 650;
-                    loadingLoader.item.back.visible = true;*/
                 }
                 onPlayerMatched:{
+
+                    background.opponent = name;
+                    background.opelo = elo;
+                    background.opavatar = avatar;
+                    background.opflag = country;
+                    bakcground.playerColor = color;
                     app.state = "GAME";
                     loadingLoader.item.text.text = "";
                     loadingLoader.item.visible = false;
+
                 }
             }
         onLoaded: {
@@ -145,7 +156,7 @@ Window {
             if(gameLoader.item != undefined){
                 //gameLoader.item.parent = app
                 gameLoader.item.setProfile(playerProfile)
-                gameLoader.item.startNewGame("Tpimp",1200,"United States", false, playerProfile.avatar);
+                gameLoader.item.startNewGame(opponent,opelo,opflag, playerColor,opavatar);
             }
         }
         active:false

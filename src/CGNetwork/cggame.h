@@ -16,6 +16,7 @@ public:
 signals:
     void opponentForfeit();
     void opponentMove(QString move);
+
 public slots:
     void processGameMessage(int func, QByteArray data);
     void makeMove(QString move);

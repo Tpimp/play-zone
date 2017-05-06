@@ -1,5 +1,6 @@
 import QtQuick 2.8
 import CGNetwork 1.0
+import CGEngine 1.0
 
 Rectangle {
     id: topRect
@@ -8,6 +9,7 @@ Rectangle {
     {
         topRect.state = "MATCHED;"
         playerProfile.setColor(color);
+        console.log(avatar);
         if(color){
             whitePlayer.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,playerProfile.avatar,true);
             blackPlayer.setBanner(name,elo,country,avatar, false);
@@ -104,6 +106,11 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
         }
 
+    }
+
+    CG_Board{
+        id:board
+        anchors.fill: parent
     }
 
 }

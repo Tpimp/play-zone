@@ -6,7 +6,8 @@
         "CGWeb":"plugins/com/chessgames/web/CGWebd",
         "CGNetwork":"plugins/com/chessgames/network/CGNetworkd",
         "CGApp":"plugins/com/chessgames/app/CGAppd",
-        "CGFlags":"plugins/com/chessgames/flags/CGFlagsd"
+        "CGFlags":"plugins/com/chessgames/flags/CGFlagsd",
+        "CGEngine":"plugins/com/chessgames/engine/CGEngined"
     },
     "qml": [
     ],
@@ -15,8 +16,8 @@
     "root": "qrc:/main.qml",
     "version": 0.1,
 	"globals":{
-        "APP_PORT":5452,
-        "APP_IP":"127.0.0.1",
+        "APP_PORT":5445,
+        "APP_IP":"192.168.3.105",
         "APP_ID":"CG-Play-Zone",
 		"STATE":"OPEN-CG-HANDSHAKE"
 	}

@@ -2,6 +2,7 @@ import QtQuick 2.8
 import CGFlags 1.0
 import CGNetwork 1.0
 import QtQuick.Controls 2.1
+
 Rectangle {
     id:root
     anchors.fill: parent
@@ -10,7 +11,7 @@ Rectangle {
     signal requestUpdateProfile()
     property var userProfile:undefined
     signal joinMatchMaking();
-    signal playerMatched(string name, int elo, string country, bool color)
+    signal playerMatched(string name, int elo, string country, string avatar, bool color)
     function setProfile(profile){
         userProfile = profile;
         flag.source = "image://flags/" +root.userProfile.flag;
@@ -21,7 +22,7 @@ Rectangle {
     CGLobby{
         id: lobbyController
         onMatchedWithAnotherPlayer:{
-            root.playerMatched(name,elo,country, color);
+            root.playerMatched(name,elo,country,avatar, color);
         }
     }
 
