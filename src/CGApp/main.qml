@@ -54,11 +54,10 @@ Window {
                 name:"GAME"
                 extend:"LOBBY"
                 PropertyChanges{target:gameLoader; active:true;}
-//                PropertyChanges{target:gameView; visible:true;}
             }
 
         ]
-        state:"LOGIN"
+        state:"GAME"
     }
 
 
@@ -129,7 +128,7 @@ Window {
                     background.opelo = elo;
                     background.opavatar = avatar;
                     background.opflag = country;
-                    bakcground.playerColor = color;
+                    background.playerColor = color;
                     app.state = "GAME";
                     loadingLoader.item.text.text = "";
                     loadingLoader.item.visible = false;
@@ -154,7 +153,6 @@ Window {
         }
         onLoaded: {
             if(gameLoader.item != undefined){
-                //gameLoader.item.parent = app
                 gameLoader.item.setProfile(playerProfile)
                 gameLoader.item.startNewGame(opponent,opelo,opflag, playerColor,opavatar);
             }

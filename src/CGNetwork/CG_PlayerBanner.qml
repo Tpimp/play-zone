@@ -9,7 +9,14 @@ Rectangle {
     function setBanner(name,elo,country,avatar, color)
     {
         //avatarImg.source = avatar;
-        flag.source = "image://flags/"+country
+        if(country.length > 0){
+            flag.source = "image://flags/"+country
+        }
+        else
+        {
+            flag.source = ""
+        }
+
         eloText.text = elo;
         nameText.text  = name;
         emblem.emblemColor = color;

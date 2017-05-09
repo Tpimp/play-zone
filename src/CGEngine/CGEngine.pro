@@ -10,11 +10,15 @@ uri = com.chessgames.engine
 # Input
 SOURCES += \
     cgengine_plugin.cpp \
-    cgtimer.cpp
+    cgtimer.cpp \
+    pieceprovider.cpp \
+    cgengine.cpp
 
 HEADERS += \
     cgengine_plugin.h \
-    cgtimer.h
+    cgtimer.h \
+    pieceprovider.h \
+    cgengine.h
 
 DISTFILES = qmldir
 

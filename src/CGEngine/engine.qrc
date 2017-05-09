@@ -3,5 +3,6 @@
         <file alias="chess.js">chess.js/chess.js</file>
         <file>CG_Board.qml</file>
         <file>CG_Tile.qml</file>
+        <file>CG_Piece.qml</file>
     </qresource>
 </RCC>
