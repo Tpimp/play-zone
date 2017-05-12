@@ -16,8 +16,9 @@ CONFIG(debug, debug|release) {
 } else {
     buildtype = release
 }
-path_to_deploy = $$clean_path( $$OUT_PWD/$${buildtype}/chessgames )
-
+win32:path_to_deploy = $$clean_path( $$OUT_PWD/$${buildtype}/chessgames )
+win64:path_to_deploy = $$clean_path( $$OUT_PWD/$${buildtype}/chessgames )
+unix:path_to_deploy = $$clean_path( $$OUT_PWD )
 copydata.commands = $(COPY_DIR) $$shell_path($$_PRO_FILE_PWD_/chessgames) $$shell_path($$path_to_deploy)
 first.depends = $(first) copydata
 export(first.depends)

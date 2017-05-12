@@ -15,7 +15,15 @@ bool CGGame::canMakeMove()
 
 void CGGame::makeMove(QString move)
 {
-
+    QJsonObject obj;
+    QJsonArray array;
+    obj["T"] = SEND_MOVE;
+    array.append(type);
+    obj["P"] = array;
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray output = doc.toBinaryData();
+    mServer->writeMessage();
 }
 
 void CGGame::startNewGame(QString opponent, QString country, int elo, bool arewhite)

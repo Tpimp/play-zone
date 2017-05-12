@@ -3,18 +3,18 @@
     "libs": [
     ],
     "plugins": {
-        "CGWeb":"plugins/com/chessgames/web/CGWebd",
-        "CGNetwork":"plugins/com/chessgames/network/CGNetworkd",
-        "CGApp":"plugins/com/chessgames/app/CGAppd",
-        "CGFlags":"plugins/com/chessgames/flags/CGFlagsd",
-        "CGEngine":"plugins/com/chessgames/engine/CGEngined"
+        "CGWeb":"plugins/com/chessgames/web/CGWeb",
+        "CGNetwork":"plugins/com/chessgames/network/CGNetwork",
+        "CGApp":"plugins/com/chessgames/app/CGApp",
+        "CGFlags":"plugins/com/chessgames/flags/CGFlags",
+        "CGEngine":"plugins/com/chessgames/engine/CGEngine"
     },
     "qml": [
     ],
     "resources": [
     ],
     "root": "qrc:/main.qml",
-    "version": 0.1,
+    "version": 0.2,
 	"globals":{
         "APP_PORT":5445,
         "APP_IP":"192.168.3.105",

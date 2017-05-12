@@ -9,7 +9,7 @@
 CGLogin::CGLogin(QQuickItem *parent) : QQuickItem(parent), mConnected(false), mTries(0)
 {
     mServer = CGServer::globalServer();
-    connect(mServer,&CGServer::connectedToHost,this,&connectedToHost);
+    connect(mServer,&CGServer::connectedToHost,this,&CGLogin::connectedToHost);
     connect(mServer, &CGServer::userLoggedIn, this,&CGLogin::userLoggedIn);
     connect(mServer, &CGServer::deniedUserCredentials, this,&CGLogin::userCredentialsDenied);
     connect(mServer,&CGServer::disconnectedFromServer, this, &CGLogin::disconnectedFromServer);

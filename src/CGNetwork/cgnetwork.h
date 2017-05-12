@@ -51,6 +51,9 @@ static const int REGISTER_USER =  543;
 
 // Profile
 static const int SET_USER_DATA =  6895;
+static const int FETCH_GAMES   =  6875;
+static const int FETCH_FAVES   = 6885;
+static const int REFRESH_USER =  6896;
 
 // Lobby
 static const int SEND_MESSAGE =  4512;
