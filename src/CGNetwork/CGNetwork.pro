@@ -7,7 +7,7 @@ CONFIG += plugin c++11
 win32:TARGET = $$qtLibraryTarget($$TARGET)
 win64:TARGET = $$qtLibraryTarget($$TARGET)
 unix!mac:TARGET = $$qtLibraryTarget($$TARGET)
-mac:TARGET = CGNetwork.dylib
+mac:TARGET = $$replace($$replace(TARGET,"lib",""),"_debug","")
 
 uri = com.cheesgames.network
 
