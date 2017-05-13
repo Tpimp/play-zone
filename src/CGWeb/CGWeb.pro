@@ -4,7 +4,10 @@ TARGET = CGWeb
 QT += core qml quick network
 CONFIG += plugin c++11
 
-TARGET = $$qtLibraryTarget($$TARGET)
+win32:TARGET = $$qtLibraryTarget($$TARGET)
+win64:TARGET = $$qtLibraryTarget($$TARGET)
+unix!mac:TARGET = $$qtLibraryTarget($$TARGET)
+mac:TARGET = CGWeb.dylib
 uri = com.chessgames.web
 
 # Input

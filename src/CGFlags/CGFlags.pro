@@ -4,7 +4,10 @@ TARGET = CGFlags
 QT += core gui qml quick
 CONFIG += plugin c++11
 
-TARGET = $$qtLibraryTarget($$TARGET)
+win32:TARGET = $$qtLibraryTarget($$TARGET)
+win64:TARGET = $$qtLibraryTarget($$TARGET)
+unix!mac:TARGET = $$qtLibraryTarget($$TARGET)
+mac:TARGET = CGFlags.dylib
 uri = com.chessgames.flags
 
 # Input

@@ -4,7 +4,10 @@ TARGET = CGApp
 QT += qml quick
 CONFIG += plugin c++11
 
-TARGET = $$qtLibraryTarget($$TARGET)
+win32:TARGET = $$qtLibraryTarget($$TARGET)
+win64:TARGET = $$qtLibraryTarget($$TARGET)
+unix!mac:TARGET = $$qtLibraryTarget($$TARGET)
+mac:TARGET = CGApp.dylib
 uri = com.chessgames.app
 
 # Input
