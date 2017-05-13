@@ -1,5 +1,9 @@
 #include "cggame.h"
 #include "cgserver.h"
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+
 CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent)
 {
     mServer = CGServer::globalServer();
@@ -18,12 +22,12 @@ void CGGame::makeMove(QString move)
     QJsonObject obj;
     QJsonArray array;
     obj["T"] = SEND_MOVE;
-    array.append(type);
+    array.append(move);
     obj["P"] = array;
     QJsonDocument doc;
     doc.setObject(obj);
     QByteArray output = doc.toBinaryData();
-    mServer->writeMessage();
+    mServer->writeMessage(output);
 }
 
 void CGGame::startNewGame(QString opponent, QString country, int elo, bool arewhite)
