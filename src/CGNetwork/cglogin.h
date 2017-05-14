@@ -18,7 +18,6 @@ signals:
     void userLoggedIn();
     void userDeniedRegister(QString reason);
     void userRegistered();
-    void profileData(QString data);
 
 public slots:
     void disconnectFromServer();

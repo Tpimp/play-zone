@@ -13,7 +13,6 @@ CGLogin::CGLogin(QQuickItem *parent) : QQuickItem(parent), mConnected(false), mT
     connect(mServer, &CGServer::userLoggedIn, this,&CGLogin::userLoggedIn);
     connect(mServer, &CGServer::deniedUserCredentials, this,&CGLogin::userCredentialsDenied);
     connect(mServer,&CGServer::disconnectedFromServer, this, &CGLogin::disconnectedFromServer);
-    connect(mServer, &CGServer::userProfileData, this, &CGLogin::profileData);
     connect(mServer, &CGServer::userRegistered,this, &CGLogin::userRegistered);
     connect(mServer, &CGServer::userDeniedRegister,this,&CGLogin::userDeniedRegister);
 }

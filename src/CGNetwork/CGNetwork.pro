@@ -7,7 +7,7 @@ CONFIG += plugin c++11
 win32:TARGET = $$qtLibraryTarget($$TARGET)
 win64:TARGET = $$qtLibraryTarget($$TARGET)
 unix!mac:TARGET = $$qtLibraryTarget($$TARGET)
-mac:TARGET = $$replace($$replace(TARGET,"lib",""),"_debug","")
+mac:TARGET = $$replace(TARGET,"lib","")
 
 uri = com.cheesgames.network
 
@@ -30,8 +30,7 @@ HEADERS += \
     cgserver.h \
     cgnetwork.h
 
-DISTFILES = qmldir \
-    CG_PlayerBanner.qml
+DISTFILES = qmldir
 
 CONFIG(debug, debug|release) {
     buildtype = debug
@@ -45,7 +44,7 @@ path_to_deploy = $$clean_path( $$_PRO_FILE_PWD_/../../app/chessgames )
 
 win32:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
 win64:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
-unix!mac:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/*.so) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
+unix:!mac:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/*.so) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
 mac:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/*.dylib) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/)
 
 
@@ -72,6 +71,7 @@ unix {
 
 win32:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/network/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/qmldir)
 win64:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/network/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/network/qmldir)
+unix:!mac:QMAKE_CLEAN += $$shell_path($$path_to_deploy/plugins/com/chessgames/network/*)
 
 
 RESOURCES += \

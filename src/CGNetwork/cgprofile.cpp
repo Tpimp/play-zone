@@ -107,10 +107,16 @@ void CGProfile::setColor(bool color)
     mColor = color;
 }
 
-void CGProfile::setUserProfile(QString &data)
+void CGProfile::setUserProfile(quint32 id, int elo, QString country, QString data, QString last)
+
 {
     CG_User::setUserStruct(mUserData,data);
-    emit profileSet();
+    mUserData.id = id;
+    mUserData.elo = elo;
+    mUserData.countryFlag = country;
+    if(!last.isEmpty()){
+        qDebug() << "Profiles most recent match: " << last;
+    }
 }
 void CGProfile::requestUpdateProfile(QString name, QString pass)
 {

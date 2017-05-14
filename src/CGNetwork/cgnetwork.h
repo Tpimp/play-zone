@@ -12,6 +12,7 @@ public:
     int      pieceSet = 0;
     int      language = 0;
     bool     sound = false;
+    quint32  id = 0;
     bool     coordinates = false;
     bool     arrows = false;
     bool     autoPromote = false;

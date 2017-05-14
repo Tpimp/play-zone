@@ -55,10 +55,11 @@ signals:
     void failedToSaveChanges();
 
 public slots:
-    void setUserProfile(QString &data);
+    void setUserProfile(quint32 id, int elo, QString country, QString data, QString last);
     void requestUpdateProfile(QString name, QString pass);
 protected:
     bool       mColor;
+
     CGServer  *mServer;
     CG_User    mUserData;
 };

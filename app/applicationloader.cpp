@@ -52,7 +52,9 @@ void ApplicationLoader::loadApplicationLocal(QString manifest_path)
 {
     clearApplication();
     BindingManifest manifest;
-    loadManifestFile(manifest, mCachePath + manifest_path);
+    QString cache_man(mCachePath);
+    cache_man.append(manifest_path);
+    loadManifestFile(manifest, cache_man);
     loadManifestComponents(manifest);
     mEngine.load(QUrl(manifest.root));
     QTimer::singleShot(1200,Qt::CoarseTimer,this, &ApplicationLoader::ready);

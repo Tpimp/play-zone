@@ -7,7 +7,7 @@ CONFIG += plugin c++11
 win32:TARGET = $$qtLibraryTarget($$TARGET)
 win64:TARGET = $$qtLibraryTarget($$TARGET)
 unix!mac:TARGET = $$qtLibraryTarget($$TARGET)
-mac:TARGET = $$replace($$replace(TARGET,"lib",""),"_debug","")
+mac:TARGET = $$replace(TARGET,"lib","")
 uri = com.chessgames.web
 
 # Input
@@ -34,7 +34,7 @@ path_to_deploy = $$clean_path( $$_PRO_FILE_PWD_/../../app/chessgames )
 
 win32:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
 win64:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/$${buildtype}/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
-unix!mac:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/*.so) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
+unix:!mac:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/*.so) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
 mac:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/*.dylib) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/)
 
 first.depends = $(first) copydata
@@ -60,3 +60,4 @@ unix {
 
 win32:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/web/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/qmldir)
 win64:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/web/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/web/qmldir)
+unix:!mac:QMAKE_CLEAN += $$shell_path($$path_to_deploy/plugins/com/chessgames/web/*)

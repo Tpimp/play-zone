@@ -70,8 +70,15 @@ void CGServer::parseServerMessage(QByteArray message)
 
             bool    verified = params.at(0).toBool();
             if(verified){
-                QString data_str = params.at(1).toString();
-                emit userProfileData(data_str);
+                QJsonDocument param = QJsonDocument::fromJson(params.at(1).toString().toLocal8Bit());
+                QJsonObject plyr = param.object();
+                quint32 id = quint32(plyr.value("id").toInt());
+                int elo = plyr.value("elo").toInt();
+                QString profile_data = plyr.value("data").toString();
+                QString country = plyr.value("country").toString();
+                QString last = plyr.value("last").toString();
+
+                emit userProfileData(id,elo,country, profile_data,last);
                 emit userLoggedIn();
             }
             else{

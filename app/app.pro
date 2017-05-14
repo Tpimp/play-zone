@@ -65,4 +65,4 @@ DISTFILES += \
 RESOURCES +=
 
 
-
+unix:QMAKE_CLEAN += path_to_deploy

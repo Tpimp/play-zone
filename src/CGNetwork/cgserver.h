@@ -17,7 +17,7 @@ public:
 signals:
     void connectedToHost();
     void disconnectedFromServer(int reason = 0);
-    void userProfileData(QString &data);
+    void userProfileData(quint32 id, int elo, QString country,QString data, QString last);
     void deniedUserCredentials();
     void userRegistered();
     void userDeniedRegister(QString reason);
