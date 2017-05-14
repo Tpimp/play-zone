@@ -127,7 +127,7 @@ Rectangle{
 
         onUserCGVerified: {
             if(loginView.connectionState == "LOG"){
-                playerProfile.avatar = avatar;
+                //playerProfile.avatar = avatar;
                 loginView.email = email;
                 loginController.attemptRegisterUser(loginView.username,loginView.password,email);
             }

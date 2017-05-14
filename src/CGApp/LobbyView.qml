@@ -9,14 +9,14 @@ Rectangle {
     color:"transparent"
     signal logout()
     signal requestUpdateProfile()
-    property var userProfile:undefined
+    //property var userProfile:undefined
     signal joinMatchMaking();
     signal playerMatched(string name, int elo, string country, string avatar, bool color)
     function setProfile(profile){
-        userProfile = profile;
-        flag.source = "image://flags/" +root.userProfile.flag;
-        eloText.text = root.userProfile.elo
-        username.text = root.userProfile.name
+        //userProfile = profile;
+        //flag.source = "image://flags/" +root.userProfile.flag;
+        //eloText.text = root.userProfile.elo
+        //username.text = root.userProfile.name
     }
 
     CGLobby{
@@ -178,19 +178,6 @@ Rectangle {
 
             }
 
-            CountryPicker{
-                id:countryPicker
-                anchors.fill: parent
-                width:parent.width
-                height:parent.height
-                visible:false
-                onSetCountry:{
-                    flag.source = "image://flags/" +country;
-                    userProfile.setCountry(country);
-                    root.requestUpdateProfile();
-                    countryPicker.visible = false;
-                }
-            }
         }
     }
 

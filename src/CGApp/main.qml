@@ -126,7 +126,6 @@ Window {
             }
         onLoaded: {
             if(lobbyLoader.item != undefined){
-                lobbyLoader.item.setProfile(playerProfile);
                 lobbyLoader.item.parent = app
             }
         }
