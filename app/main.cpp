@@ -6,7 +6,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFile>
-#include <QDir>
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     ApplicationLoader loader(engine,&app);
     // local files provided with last "update/original" might be stale
-    QString cache_path = QDir::currentPath();
+    QString cache_path = app.applicationDirPath();
 #ifdef Q_OS_MACX
     cache_path.replace("/play-zone.app/Contents/MacOS","");
 #endif

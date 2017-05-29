@@ -2,4 +2,6 @@ module CGApp
 depends CGNetwork
 depends CGFlags
 depends CGWeb
+depends CGEngine
+depends CGAvatars
 plugin CGApp
