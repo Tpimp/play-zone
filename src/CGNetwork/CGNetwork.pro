@@ -18,8 +18,7 @@ SOURCES += \
     cggame.cpp \
     cglogin.cpp \
     cgprofile.cpp \
-    cgserver.cpp \
-    cgnetwork.cpp
+    cgserver.cpp
 
 HEADERS += \
     cgnetwork_plugin.h \

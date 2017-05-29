@@ -4,5 +4,11 @@
         <file>CG_Board.qml</file>
         <file>CG_Tile.qml</file>
         <file>CG_Piece.qml</file>
+        <file>CG_PromotePicker.qml</file>
+        <file>CG_PieceButton.qml</file>
+        <file>CG_DragSurface.qml</file>
+        <file>CG_LocalBoard.qml</file>
+        <file>board.js</file>
+        <file>CG_AnimatedBoard.qml</file>
     </qresource>
 </RCC>

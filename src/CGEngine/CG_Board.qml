@@ -1,343 +1,445 @@
 import QtQuick 2.8
 import "chess.js" as Engine
 import CGEngine 1.0
+import "board.js" as Board
+
 Item {
     id:board
-    property string boardDark:"darkgrey"
-    property string boardLight:"lightgrey"
-    property string faveColor:"white"
-    property var    game:undefined
-    property real   cellSize:board.width > board.height ? board.height/8:board.width/8
-    property var    boardComponent:null
-    property var    pieceComponent:null
-    property real   pieceCount:0
-    property var    tileArray:[]
-    property real   fromIndex:-1
-    property var    names: ["a8","b8", "c8", "d8", "e8", "f8", "g8", "h8",
-                            "a7","b7", "c7", "d7", "e7", "f7", "g7", "h7",
-                            "a6","b6", "c6", "d6", "e6", "f6", "g6", "h6",
-                            "a5","b5", "c5", "d5", "e5", "f5", "g5", "h5",
-                            "a4","b4", "c4", "d4", "e4", "f4", "g4", "h4",
-                            "a3","b3", "c3", "d3", "e3", "f3", "g3", "h3",
-                            "a2","b2", "c2", "d2", "e2", "f2", "g2", "h2",
-                            "a1","b1", "c1", "d1", "e1", "f1", "g1", "h1"]
+    // actual changeable values of the board
+    property string  boardDark:"darkgrey"
+    property string  boardLight:"lightgrey"
+    property string  faveColor:"white"
+    property bool    boldBorder:true
+    property var     game:Engine.Chess()
+    property real    cellSize:width/8 - 2
+    property var     pieceComponent:undefined
+    property var     lastHoverTile:null
+    property var     moves:[]
+    property string  heldType:''
+    property string  turn:'w'
+    property bool    playerColor:true
+    property var     whiteKing:undefined
+    property var     blackKing:undefined
 
-    function removePiece(tile){
-        var tile_obj = tileArray[tile];
-        tile_obj.piece.destroy();
-        tile_obj.piece = null;
-    }
-    CGEngine{
-        id:chessEngine
-    }
+    signal finishedLoading();
+    signal sendMove(int from, int to, string fen, string promote);
+    signal sendResult(int result, var move, string fen, string game);
+    signal whitesTurn();
+    signal blacksTurn();
+    signal promote(var from, var to);
+    signal gameOver(int reslut, var move, string fen, string game);
+    signal pieceTaken(var piece);
 
-    Connections{
-        target: chessEngine
-        onPieceCreated:{
-            board.setPiece(type,color,tile);
-        }
-        onPieceCaptured:{
-            board.removePiece(tile);
-        }
-        onEnPassant:{
-            board.removePiece(tile_destroy);
-        }
-        onPieceMoved:{
-            var to_obj = tileArray[tile_to];
-            var from_obj = tileArray[tile_from];
-            to_obj.piece = from_obj.piece;
-            from_obj.piece = null;
-            to_obj.piece.x = to_obj.x +2;
-            to_obj.piece.y = to_obj.y +2;
-        }
-        onPromotion:{
-            chessEngine.refresh(board.game.get(names[tile]),tile);
+    // external flags
+    property alias  interactive:boardMouse.enabled
+    property alias  borderColor:boardBackground.color
 
-        }
-        onRefreshPiece:{
-            var to_obj = tileArray[tile];
-            var piece_str = type+color;
-            var p_index = PieceTable[piece_str];
-            if(to_obj.piece === undefined || to_obj.piece === null){
-                board.setPiece(type,color,tile);
-            }
-            else
-            {
-                to_obj.piece.type = "cg_kramnik.png#"+p_index;
-                to_obj.piece.x = to_obj.x +2;
-                to_obj.piece.y = to_obj.y +2;
-            }
-        }
-        onClearTile:{
-            board.removePiece(tile);
-        }
-
+    // after values are changed, redraw the board
+    onCellSizeChanged:{
+        chessEngine.setCellSize(cellSize);
+        board.resizeBoard();
     }
 
-    function onPiecePlaced(from_tile, to_tile){
-        if(board.makeMove(from_tile,to_tile, "q"))
-        {
-            console.log("Valid move made")
-            if(board.game.in_checkmate()){
-                if(to_tile.piece.type[1] ==='b'){
-                    console.log("Black wins by checkmate")
-                }
-                else{
-                    console.log("White wins by checkmate")
+
+    // CG_Board Specific functions
+
+    // update pgn header items
+    function setHeader(white, black, date){
+        board.game.header('White',white,'Black',black,'Date',date);
+    }
+
+    // function redraw all the board pieces
+    function resizeBoard(){
+        if(board.boldBorder){
+            boardGrid.spacing = 1;
+            boardGrid.width = boardBackground.width-2;
+            boardGrid.height = boardBackground.height-2;
+            chessEngine.setCellSize(cellSize-1);
+            for(var index = 0; index < 64; index++){
+                var tile = tileRepeater.itemAt(index);
+                if(tile){
+                    tile.width = (cellSize - 1);
+                    tile.height = (cellSize - 1);
+                    if(tile.piece !== undefined && tile.piece !== null){
+                        tile.piece.x = tile.x;
+                        tile.piece.y = tile.y;
+                        tile.piece.width = tile.width;
+                        tile.piece.height = tile.height;
+                    }
                 }
             }
-
         }
-        else{
-            console.log("Invalid move")
-            from_tile.piece.x = from_tile.x +2;
-            from_tile.piece.y = from_tile.y +2;
-        }
-
-    }
-
-    function makeMove(from_tile,to_tile, promote){
-        var move_obj
-        if(promote !== null){
-          move_obj = board.game.move({from:from_tile.pos,to:to_tile.pos,promotion:promote});
-        }
-        else{
-            move_obj = board.game.move({from:from_tile.pos,to:to_tile.pos});
-        }
-        return chessEngine.makeMove(from_tile.index,to_tile.index,move_obj);
-       /* if(move_obj)
+        else
         {
-            console.log(move_obj.flags)
-            if(to_tile.piece != null){
-                board.removePiece(to_tile);
+            boardGrid.width = boardBackground.width;
+            boardGrid.height = boardBackground.height;
+            boardGrid.spacing = 0;
+            chessEngine.setCellSize(cellSize);
+            for(var indexw = 0; indexw < 64; indexw++){
+                var tilew = tileRepeater.itemAt(index);
+                if(tilew){
+                    tilew.width = cellSize;
+                    tilew.height = cellSize;
+                    if(tilew.piece !== undefined && tilew.piece !== null){
+                        tilew.piece.x = tilew.x;
+                        tilew.piece.y = tilew.y;
+                        tilew.piece.width = tilew.width;
+                        tilew.piece.height = tilew.height;
+                    }
+                }
             }
-            to_tile.piece = from_tile.piece;
-            to_tile.piece.index = to_tile.index;
-            to_tile.piece.x = to_tile.x +2;
-            to_tile.piece.y = to_tile.y + 2;
-            from_tile.piece = null;
-            return true;
         }
-        return false;*/
     }
-    function setPiece(piece,player_color, tile){
-        var row = parseInt(tile/8);
-        var col = parseInt(tile%8);
-        var piece_str = piece+player_color;
-        var p_index = PieceTable[piece_str];
-        var tile_obj = tileArray[tile];
 
-        if(tile_obj.piece !== null && tile_obj.piece !== undefined){
-            tile_obj.piece.piece = "cg_kramnik.png#"+p_index
-            // TODO: Add set piece in chess engine
-        }
-        else{
-            tile_obj.piece = pieceComponent.createObject(boardMouse,{});
-            tile_obj.piece.x = tile_obj.x + 2;
-            tile_obj.piece.y = tile_obj.y + 2;
-            tile_obj.piece.height = cellSize -4;
-            tile_obj.piece.width = cellSize -4;
-            tile_obj.piece.type = "cg_kramnik.png#"+p_index
-            tile_obj.piece.index = tile;
-        }
-    }
-    function resetBoard(){
-        for(var index = 0; index < 64; index++){
-            var tile = tileArray[index];
-            if(tile.piece !== undefined  && tile.piece !== null){
-                tile.piece.destroy();
-                tile.piece = null;
-            }
-        }
-        board.game = Engine.Chess();
-        var board_data = board.game.board();
-        chessEngine.resetBoard(board_data)
-
-    }
-    function clearBoard(){
-        for(var index = 0; index < 64; index++){
-            var tile = tileArray[index];
-            if(tile.piece !== undefined  && tile.piece !== null){
-                tile.piece.destroy();
-                tile.piece = null;
-            }
-        }
-    }
+    // redraw the pieces on the board
     function refreshBoard(){
         var board_data = board.game.board();
         chessEngine.resetBoard(board_data)
     }
 
-    function setNewFen(fen){
-        board.clearBoard();
-        board.game = Engine.Chess(fen);
-        board.refreshBoard()
-    }
-    function setNewPgn(pgn){
-        board.clearBoard();
-        board.game = Engine.Chess();
-        board.game.load_pgn(pgn);
-        board.refreshBoard()
-    }
-
-    function  createNextTile(){
-        if(tileArray.length <= 63){
-            populateBoard();
-        }
-        else{
-            creationTimer.stop();
-            creationTimer.triggered.disconnect(createNextTile);
-            resetBoard();
-        }
-    }
-
-    function populateBoard() // This function will generate a new image object
+    function clearHeldPiece()
     {
-        var index = tileArray.length;
-        if(boardComponent.status == Component.Ready)
-        {
-            var instance = boardComponent.createObject(boardGrid,{})
-            tileArray[index] = instance;
-            if(instance == null)
-            {
-               return
+        if(board.lastHoverTile){
+            board.lastHoverTile.selected = false;
+            board.lastHoverTile = null;
+        }
+        board.moves = [];
+    }
+
+
+    function removePiece(index){
+        var tile = tileRepeater.itemAt(index)
+        if(tile.piece){
+            tile.piece.destroy();
+            tile.piece = null;
+        }
+    }
+
+    function makeRemoteMove(move){
+        var from_tile = tileRepeater.itemAt(move.from);
+        var to_tile = tileRepeater.itemAt(move.to);
+        var move_obj = board.game.move({from:from_tile.pos,to:to_tile.pos,promotion:move.promote});
+        if(move_obj !== null){
+            chessEngine.makeMove(from_tile.index,to_tile.index,move_obj,promote);
+        }
+    }
+
+    // check the move is valid
+    function makeMove(from_tile,to_tile, promote,override){
+        if(override === undefined){
+            promote = 'q';
+        }
+        var move_obj = board.game.move({from:from_tile.pos,to:to_tile.pos,promotion:promote});
+        if(move_obj !== null){
+            if(move_obj.flags.indexOf('p') >= 0 && override === undefined){ // if promote
+                board.game.undo();
+                board.promote(from_tile, to_tile);
+                //checkGameOver(move_obj);
             }
-            else
-            {
-                var row =parseInt(index / 8);
-                if ((row % 2) == 0)
-                {
-                    if (index % 2){
-                        instance.color = boardDark
-                    }
-                    else{
-                        instance.color = boardLight
-                    }
+            else{
+                chessEngine.makeMove(from_tile.index,to_tile.index,move_obj,promote);
+                //checkGameOver(move_obj);
+            }
+        }
+        else
+        {
+            from_tile.piece.selected = false;
+            from_tile.piece.x = from_tile.x;
+            from_tile.piece.y = from_tile.y;
+        }
+        clearHeldPiece();
+    }
+    // CGEngine integration ( A bulk of the logic )
+
+    CGEngine{
+        id:chessEngine
+        onPieceCreated:{ // create the piece on the board
+            var tile_obj = tileRepeater.itemAt(tile);
+            var row = parseInt(tile/8);
+            var col = parseInt(tile%8);
+            var piece_str = type+color;
+
+
+            var p_index = PieceTable[piece_str];
+            if(tile_obj.piece !== null && tile_obj.piece !== undefined){
+                tile_obj.piece.piece = "cg_kramnik.png#"+p_index
+            }
+            else{
+                var piece = pieceComponent.createObject(boardMouse,{});
+                tile_obj.setPiece(piece,tile,p_index);
+            }
+            if(type == 'k'){
+                if(color == 'w'){
+                    board.whiteKing = tile_obj;
                 }
                 else
                 {
-                    if (index % 2){
-                        instance.color = boardLight
-                    }
-                    else{
-                        instance.color = boardDark
-                    }
+                    board.blackKing = tile_obj;
                 }
-                instance.pos =  names[index];
-                instance.index = index;
-                instance.width = cellSize;
-                instance.height = instance.width;
             }
         }
-        return index;
+        onPieceCaptured:{ // remove it
+            board.removePiece(tile);
+        }
+        onEnPassant:{ // remove the pawn
+            board.removePiece(tile_destroy);
+        }
+        onPieceMoved:{ // move the piece
+            var to_obj = tileRepeater.itemAt(tile_to);
+            var from_obj = tileRepeater.itemAt(tile_from);
+            to_obj.piece = from_obj.piece;
+            from_obj.piece = null;
+            to_obj.piece.x = to_obj.x;
+            to_obj.piece.y = to_obj.y;
+            var got = board.game.get(to_obj.pos);
+            if(got.type === 'k'){
+                if(got.color === 'w'){
+                    board.whiteKing = to_obj;
+                }
+                else
+                {
+                    board.blackKing = to_obj;
+                }
+            }
+
+            board.turn = board.game.turn()
+            if(board.turn === 'w'){
+                board.whitesTurn();
+                if(board.game.in_check()){
+                    chessEngine.isInCheck(board.whiteKing.index);
+                }
+            }
+            else{
+                board.blacksTurn();
+                if(board.game.in_check()){
+                    chessEngine.isInCheck(board.blackKing.index);
+                }
+            }
+            board.sendMove(tile_from,tile_to, board.game.fen(), promote);
+        }
+        onPromotion:{
+            var tile_obj = tileRepeater.itemAt(tile);
+            chessEngine.refresh(board.game.get(tile_obj.pos),tile);
+        }
+        onPlayerCheck:{
+            var tile_obj = tileRepeater.itemAt(index);
+            checkText.x = tile_obj.x - (cellSize/2);
+            checkText.y = tile_obj.y;
+            checkText.visible = true;
+            checkAnimation.start();
+        }
+
+        onRefreshPiece:{
+            var to_obj = tileRepeater.itemAt(tile);
+            var piece_str = type+color;
+            var p_index = PieceTable[piece_str];
+            if(to_obj.piece === undefined || to_obj.piece === null){
+                Board.setPiece(type,color,tile);
+            }
+            else
+            {
+                to_obj.piece.type = "cg_kramnik.png#"+p_index;
+                to_obj.piece.x = to_obj.x;
+                to_obj.piece.y = to_obj.y;
+            }
+        }
+        onClearTile:{
+            board.removePiece(tile);
+        }
     }
 
 
-    Timer{
-        id:creationTimer
-        repeat: true
-        interval:1
-        //onTriggered:createNextTile();
 
-    }
+    /*********************************************************************************
+    ** The QML Definition for the board object
+    **
+    **
+    **
+    *********************************************************************************/
 
     Rectangle{
         id:boardBackground
-        border.width: 2
-        radius: 4
         anchors.fill: parent
-        clip:true
-        color:"lightblue"
+        color:"black"
+        z:1
         Grid{
             id:boardGrid
-            anchors.fill: parent
+            anchors.centerIn: parent
             columns: 8
-            columnSpacing:0
-            add: Transition {
-                NumberAnimation { property: "opacity"; from: 0; to: 1.0; duration: 150 }
-                NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 350 }
-            }
+            z:2
+                Repeater{
+                    id:tileRepeater
+                    model:64
+                    CG_Tile{
+                        id: cell
+                        height:cellSize
+                        width:cellSize
+                    }
+                    Component.onCompleted: {
+                        for(var index = 0; index < 64; index++){
+                            var row =parseInt(index / 8);
+                            var cell = tileRepeater.itemAt(index)
+                            if ((row % 2) == 0)
+                            {
+                                if (index % 2){
+                                    cell.setColor(boardDark,true);
+                                }
+                                else{
+                                    cell.setColor(boardLight,false);
+                                }
+                            }
+                            else
+                            {
+                                if (index % 2){
+                                    cell.setColor(boardLight,false);
+                                }
+                                else{
+                                    cell.setColor(boardDark,true);
+                                }
+                            }
+                            cell.pos =  chessEngine.getName(index);
+                            cell.index = index;
+                            cell.piece = null;
+                        }
+                    }
+                }
         }
-        MouseArea{
-            id: boardMouse
+        CG_DragSurface{
+            id:boardMouse
             anchors.fill: parent
-            property bool wasDragged:false
-            property real from:-1
-            onPressed:{
-                var col = parseInt(mouseX/cellSize);
-                var row = parseInt(mouseY/cellSize);
-                var index = (row*8) + col;
-                if(boardMouse.from < 0)
-                {
-                    if(index >= 0 && index < 64){
-                        if(tileArray[index].piece != null){
-                            var piece_at = tileArray[index].piece;
-                            boardMouse.drag.target = piece_at;
-                            board.fromIndex = index;
+            cellSize:board.cellSize
+            rowCount:8
+            onClickStarted:{
+                var tile = tileRepeater.itemAt(index);
+                var piece = tile.piece;
+                if(piece !== null && piece !== undefined){
+                    var got = board.game.get(tile.pos);
+                    if((got.color === board.turn) || (got.color === board.turn)){
+                        piece.selected = true;
+                        boardMouse.setSelected(index,true)
+                        if(got.type !== 'p'){
+                            if(got.color)
+                            {
+                                heldType = got.type.toUpperCase();
+                            }
+                            else{
+                                heldType = got.type;
+                            }
                         }
                         else{
-                            boardMouse.drag.target = null;
-                            board.fromIndex = -1;
+                            heldType = '';
+                        }
+                        board.moves = piece.moves;
+                    }
+                }
+                drag.target = null;
+
+            }
+            onClickMoved:{
+                var from_tile = tileRepeater.itemAt(start);
+                var to_tile = tileRepeater.itemAt(end);
+                from_tile.piece.selected = false;
+                board.makeMove(from_tile,to_tile,'q'); //initial check
+                boardMouse.setSelected(-1,false);
+                board.moves = [];
+                drag.target = null;
+            }
+            onPressedAt: {
+                var tile = tileRepeater.itemAt(index);
+                var piece = tile.piece;
+                if(piece !== null && piece !== undefined){
+                    var got = board.game.get(tile.pos);
+                    if((got.color === board.turn) || (got.color === board.turn)){
+                        boardMouse.drag.target = piece;
+                        board.moves = board.game.moves({square: tile.pos});
+                        if(got.type !== 'p' && got.type !== 'P'){
+                            if(got.color)
+                            {
+                                heldType = got.type.toUpperCase();
+                            }
+                            else{
+                                heldType = got.type;
+                            }
+                        }
+                        else{
+                            heldType = '';
                         }
                     }
-                    wasDragged = false;
-                    boardMouse.from = index;
                 }
-                else{
-                    if(index !== boardMouse.from){
-                        var from_tile = tileArray[boardMouse.from];
-                        var to_tile = tileArray[index];
-                        board.onPiecePlaced(from_tile,to_tile)
-                        boardMouse.from = -1;
-                    }
-                }
-            }
-            drag.onActiveChanged: {
-                wasDragged =active;
             }
 
-            onReleased: {
-                var col = parseInt(mouseX/cellSize);
-                var row = parseInt(mouseY/cellSize);
-                var index = (row*8) + col;
-                if(wasDragged){
-                    boardMouse.from = -1;
-                    if(board.fromIndex >=0)
-                    {
-                        var from_tile = tileArray[board.fromIndex];
-                        if(index < 64 && index >= 0){
-                            var to_tile = tileArray[index];
-                            board.onPiecePlaced(from_tile,to_tile)
-                        }
-                        else{
-                            from_tile.piece.x = from_tile.x +2;
-                            from_tile.piece.y = from_tile.y +2;
-                        }
-                    }
-                    boardMouse.drag.target = null;
+            onDragMoved:{
+                var from_tile = tileRepeater.itemAt(start);
+                if(from_tile){
+                    var to_tile = tileRepeater.itemAt(end);
+                    from_tile.piece.selected = false;
+                    board.makeMove(from_tile,to_tile,'q'); //initial check
+                }
+                drag.target = null;
+                boardMouse.setSelected(-1,false);
+                board.moves = [];
+            }
+            onDragStartHover: {
+                var tile = tileRepeater.itemAt(start);
+                if(chessEngine.checkValidMove(board.moves, tile.pos)){
+                    tile.selected = true;
                 }
             }
+            onDragStoppedHover: {
+                var tile = tileRepeater.itemAt(left);
+                tile.selected = false;
+            }
+        }
+        onWidthChanged: {
+            board.resizeBoard()
         }
     }
 
+    Timer{
+        id:creationTimer
+        interval:1
+        running:false
+        repeat:false
+        onTriggered: board.refreshBoard();
+    }
+    Image{
+        id:checkText
+        height:cellSize
+        width:cellSize*2
+        source:"/images/check2.png"
+        fillMode: Image.PreserveAspectFit
+        z:150
+        visible:false
+        SequentialAnimation{
+            id: checkAnimation
+            running:false
+            NumberAnimation {
+                target: checkText
+                property: "scale"
+                from: 1.0
+                to: 1.25
+                duration: 300
+                easing.type: Easing.InOutQuad
+            }
+            NumberAnimation {
+                target: checkText
+                property: "scale"
+                from: 1.25
+                to: 1.0
+                duration: 300
+                easing.type: Easing.InOutQuad
+            }
+            onStopped: {
+                checkText.visible = false;
+            }
+
+            alwaysRunToEnd: true
+        }
+
+    }
 
     Component.onCompleted: {
-        boardComponent = Qt.createComponent("CG_Tile.qml");
-        pieceComponent = Qt.createComponent("CG_Piece.qml");
-        creationTimer.triggered.connect(createNextTile)
-        creationTimer.start();
-        //        var moves = board.game.moves();
-        //        var move = moves[Math.floor(Math.random() * moves.length)];
-        //        board.game.move(move);
-        //        console.log(board.game.pgn());
+        board.pieceComponent = Qt.createComponent("CG_Piece.qml");
+        creationTimer.start()
     }
-    /*Component.onDestroyed: {
-        for(var index = 0; index < 64; index++){
-            var tile = tileArray[index];
-            if(tile.piece !== undefined  && tile.piece !== null){
-                tile.piece.destroy();
-                tile.piece = null;
-            }
-        }
-    }*/
 }

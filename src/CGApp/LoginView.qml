@@ -40,6 +40,20 @@ Rectangle{
         loginView.form.login.visible = 0;
         loginView.form.registerText.text = ""
     }
+    function getPassword(){
+        return loginController.getPassword();
+    }
+
+    /************************************************
+    * This section defines the Connections to
+    * "Updater"
+    *
+    ***********************************************/
+    Connections{
+        target: CGUpdater // comes from the C++ application loader
+        onUpdateAvailable: loginView.state = "AVAILABLE";
+        onReady:{loginView.state = "READY";}
+    }
 
     states:[
         State{
@@ -76,6 +90,7 @@ Rectangle{
         },
         State{
             name:"READY"
+            extend:""
             PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
             StateChangeScript{script:loginView.stopLoading();}
             PropertyChanges{target:statusText;text:""}
@@ -103,16 +118,6 @@ Rectangle{
 
     ]
 
-    /************************************************
-    * This section defines the Connections to
-    * "Updater"
-    *
-    ***********************************************/
-    Connections{
-        target: CGUpdater // comes from the C++ application loader
-        onUpdateAvailable: loginView.state = "AVAILABLE";
-        onReady:{loginView.state = "READY";}
-    }
 
     CGWebConnection{
         id: webController
@@ -195,7 +200,7 @@ Rectangle{
     *  The Button and Form Container -takes up the remainder of the screen (height).
     *        The Button and Form Container maintains 90% of client width.
     *
-    *  The button and form container combine with the "x"container Components
+    *  The button and form container combine with the "x" container Components
     *  to generate the various states of the login view.
     *******************************************************************************/
 
@@ -366,12 +371,6 @@ Rectangle{
         CG_DarkButton{
             id:cancelButton
             text.text: "Cancel Login"
-            anchors.left:parent.left
-            anchors.right:parent.right
-            anchors.leftMargin: parent.width*.025
-            anchors.rightMargin: parent.width*.025
-            height: parent.height/6.1
-            anchors.verticalCenter: parent.verticalCenter
             mouse.onClicked:{
                 loginView.state = "READY";
                 loginController.disconnectFromServer();
@@ -380,7 +379,14 @@ Rectangle{
             Behavior on scale{
                 NumberAnimation{from:0;to:1;duration:600}
             }
-
+            Component.onCompleted: {
+                anchors.left = parent.left
+                anchors.right = parent.right
+                anchors.leftMargin = parent.width*.025
+                anchors.rightMargin = parent.width*.025
+                height = parent.height/6.1
+                anchors.verticalCenter = parent.verticalCenter
+            }
         }
     }
 

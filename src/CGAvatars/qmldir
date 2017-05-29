@@ -1,0 +1,4 @@
+module CGAvatars
+internal CGAvatarsProvider
+AvatarPicker 1.0 AvatarPicker.qml
+plugin CGAvatars

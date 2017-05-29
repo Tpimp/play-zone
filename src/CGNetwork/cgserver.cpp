@@ -1,6 +1,4 @@
 #include "cgserver.h"
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QDataStream>
 #include <QJsonArray>
 //Q_DECLARE_METATYPE(QAbstractSocket::SocketError)
@@ -40,7 +38,7 @@ void CGServer::connectToHost(QString url)
 }
 void CGServer::disconnectFromHost()
 {
-    mSocket.close();
+    mSocket.close(QWebSocketProtocol::CloseCodeGoingAway,"Logout");
 }
 
 
@@ -71,14 +69,11 @@ void CGServer::parseServerMessage(QByteArray message)
             bool    verified = params.at(0).toBool();
             if(verified){
                 QJsonDocument param = QJsonDocument::fromJson(params.at(1).toString().toLocal8Bit());
-                QJsonObject plyr = param.object();
-                quint32 id = quint32(plyr.value("id").toInt());
-                int elo = plyr.value("elo").toInt();
-                QString profile_data = plyr.value("data").toString();
-                QString country = plyr.value("country").toString();
-                QString last = plyr.value("last").toString();
+                QJsonArray plyr = param.array();
+                QString profile_data = plyr.at(0).toString();
+                QString last = plyr.at(1).toString();
 
-                emit userProfileData(id,elo,country, profile_data,last);
+                emit userProfileData( profile_data,last);
                 emit userLoggedIn();
             }
             else{
@@ -97,20 +92,47 @@ void CGServer::parseServerMessage(QByteArray message)
             break;
         }
         case MATCHED_PLAYER:{
-            QString player_data = params.at(0).toString();
-            QJsonDocument doc = QJsonDocument::fromJson(player_data.toLocal8Bit());
-            QJsonObject obj = doc.object();
-            QString name = obj.value("name").toString();
-            int elo = obj.value("elo").toInt();
-            bool color = obj.value("color").toBool();
-            QString country = obj.value("flag").toString();
-            QString avatar = obj.value("avatar").toString();
-            emit lobbyFoundMatch(name,elo,country,avatar,color);
+            QJsonObject player_data( params.at(0).toObject());
+            /*
+            QString name(obj.value("name").toString());
+            int elo(obj.value("elo").toInt());
+            bool color(obj.value("color").toBool());
+            QString country(obj.value("flag").toString());
+            QString avatar(obj.value("avatar").toString());
+            quint64 game_id(obj.value("id").toDouble());*/
+            emit lobbyFoundMatch(player_data);
+        }
+        case SEND_SYNC:{
+            if(params.count() > 0){
+                int state(params.at(0).toInt());
+                emit gameSynchronized(state);
+            }
+            break;
+        }
+        case SEND_MOVE:{
+            if(params.count() > 0){
+                emit opponentMoved(params.at(0).toObject());
+            }
+            break;
+        }
+        case SEND_RESULT:{
+            if(params.count() >= 1){
+                QString result(params.at(0).toString());
+                QJsonDocument doc = QJsonDocument::fromJson(result.toLocal8Bit());
+                QJsonObject obj = doc.object();
+                int resulti = obj.value("result").toInt();
+                QJsonObject move = obj.value("move").toObject();
+                QString fen = obj.value("fen").toString();
+                QString last = obj.value("game").toString();
+                emit gameFinished(resulti,move,fen,last);
+            }
+            break;
         }
         case SET_USER_DATA:{
-            bool    set = params.at(0).toBool();
-            if(set){
-                emit setUserData();
+            if(params.count() > 0){
+                QString user_data = params.at(0).toString();
+                QString last;
+                emit setUserData(user_data,last);
             }
             else{
                 emit failedToSetUserData();

@@ -5,48 +5,43 @@ Rectangle {
     width:400
     height:500
     signal setCountry(string country);
-    ListView{
-        id: list
+    property var flagComponent:undefined
+    property int flagCount:0
+    Flickable{
+        id:flicker
         anchors.fill: parent
-        model: AvailableCountries
+        contentHeight: flagCount*80
         clip:true
-        delegate:Rectangle{
-            id:topDelegate
-            height:root.header/7
-            implicitHeight: 80
-            anchors.left:parent.left
-            anchors.right:parent.right
-            anchors.margins: 2
-
-            Image{
-                id:flag
-                anchors.left:parent.left
-                anchors.top:parent.top
-                anchors.bottom:parent.bottom
-                anchors.margins: 4
-                width:height
-                source: "image://flags/"+modelData
-                fillMode: Image.PreserveAspectFit
-                smooth:true
-            }
-            Text{
-                anchors.left:flag.right
-                anchors.right:parent.right
-                anchors.top:parent.top
-                anchors.bottom:parent.bottom
-                anchors.margins: 8
-                font.pixelSize: height * .32
-                text:modelData
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            MouseArea{
-                anchors.fill: parent
-                onClicked:{
-                    root.setCountry(modelData);
+        Column{
+            id: list
+            anchors.fill: parent
+            add: Transition {
+                ParallelAnimation{
+                NumberAnimation { property: "x"; from: 300; to: 0; duration: 100 }
+                NumberAnimation { property: "scale"; from: .2; to: 1.0; duration: 100 }
+                alwaysRunToEnd: true
                 }
             }
         }
+    }
+    Timer{
+        id:creationTimer
+        repeat: true
+        running:false
+        interval:100
+        onTriggered:{
+            if( flagCount< AvailableCountries.length){
+                var instance = flagComponent.createObject(list,{modelData:AvailableCountries[flagCount++]})
+                instance.y = ((flagCount-1) * instance.height)
+            }
+            else{
+                creationTimer.stop();
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        flagComponent = Qt.createComponent("CG_FlagBar.qml");
+        creationTimer.start()
     }
 }

@@ -30,5 +30,6 @@
         <file>images/quit.png</file>
         <file>images/TwitHeart.png</file>
         <file>images/PlayerMatched.png</file>
+        <file>images/check2.png</file>
     </qresource>
 </RCC>

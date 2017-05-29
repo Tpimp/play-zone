@@ -10,5 +10,6 @@
         <file>images/Europe2.png</file>
         <file>CountryPicker.qml</file>
         <file>LobbyButton.qml</file>
+        <file>CG_FlagBar.qml</file>
     </qresource>
 </RCC>

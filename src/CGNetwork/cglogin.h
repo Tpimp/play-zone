@@ -10,6 +10,7 @@ class CGLogin : public QQuickItem
 public:
     CGLogin(QQuickItem* parent=nullptr);
     ~CGLogin();
+    Q_INVOKABLE QByteArray getPassword();
 signals:
     void serverReady();
     void disconnectedFromServer(int reason);
@@ -18,7 +19,6 @@ signals:
     void userLoggedIn();
     void userDeniedRegister(QString reason);
     void userRegistered();
-
 public slots:
     void disconnectFromServer();
     void setServerAddress(QString ip, int port);

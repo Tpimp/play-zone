@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QWebSocket>
 #include "cgnetwork.h"
+#include <QJsonDocument>
+#include <QJsonObject>
 
 
 class CGServer : public QObject
@@ -15,20 +17,26 @@ public:
     static CGServer* globalServer();
 
 signals:
+    // Login
     void connectedToHost();
     void disconnectedFromServer(int reason = 0);
-    void userProfileData(quint32 id, int elo, QString country,QString data, QString last);
     void deniedUserCredentials();
     void userRegistered();
     void userDeniedRegister(QString reason);
     void userLoggedIn();
     void userLoggedOut();
-    void setUserData();
+    // Profile
+    void userProfileData(QString &data, QString &last);
+    void setUserData(QString &data, QString &last);
     void failedToSetUserData();
-
+    // lobby
     void lobbyStartedMatchmaking(int type);
-    void lobbyFoundMatch(QString  name, int elo, QString country, QString avatar, bool arewhite);
+    void lobbyFoundMatch(QJsonObject opponent);
 
+    // game related
+    void opponentMoved(QJsonObject move);
+    void gameSynchronized(int state);
+    void gameFinished(int result, QJsonObject move, QString fen, QString last);
 
 public slots:
     void connectToHost(QString address, int port);

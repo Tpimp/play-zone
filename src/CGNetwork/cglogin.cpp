@@ -76,6 +76,11 @@ void CGLogin::disconnectFromServer()
     mServer->disconnectFromHost();
 }
 
+QByteArray CGLogin::getPassword()
+{
+    return mHashedPass;
+}
+
 void CGLogin::loginToHost()
 {
     disconnect(mServer, &CGServer::connectedToHost, this, &CGLogin::loginToHost);

@@ -8,7 +8,7 @@ CGProfile::CGProfile(QQuickItem *parent) : QQuickItem(parent)
 {
     mServer = CGServer::globalServer();
     connect(mServer, &CGServer::userProfileData,this,&CGProfile::setUserProfile);
-    connect(mServer, &CGServer::setUserData,this,&CGProfile::profileChangesSaved);
+    connect(mServer, &CGServer::setUserData,this,&CGProfile::setUserProfile);
     connect(mServer, &CGServer::failedToSetUserData,this,&CGProfile::failedToSaveChanges);
 }
 
@@ -44,7 +44,10 @@ QString CGProfile::flag()
 
 void CGProfile::setCountry(QString country)
 {
-    mUserData.countryFlag = country;
+    if(country.compare(mUserData.countryFlag) != 0){
+        mUserData.countryFlag = country;
+        emit countryChanged(country);
+    }
 }
 
 int CGProfile::language()
@@ -92,14 +95,30 @@ int CGProfile::cgdata()
     return mUserData.cgbitfield;
 }
 
+int CGProfile::gamesPlayed()
+{
+    return 0;
+}
+
 bool CGProfile::isValid()
 {
     return mUserData.isValid;
 }
 
+void CGProfile::setName(QString name)
+{
+    if(mUserData.username.compare(name) != 0){
+        mUserData.username = name;
+        emit nameChanged(name);
+    }
+}
+
 void CGProfile::setAvatar(QString avatar)
 {
-    mUserData.avatar = avatar;
+    if(avatar.compare(mUserData.avatar) != 0){
+        mUserData.avatar = avatar;
+        emit avatarChanged(avatar);
+    }
 }
 
 void CGProfile::setColor(bool color)
@@ -107,36 +126,45 @@ void CGProfile::setColor(bool color)
     mColor = color;
 }
 
-void CGProfile::setUserProfile(quint32 id, int elo, QString country, QString data, QString last)
+void CGProfile::setUserProfile(QString &data, QString &last)
 
 {
-    CG_User::setUserStruct(mUserData,data);
-    mUserData.id = id;
-    mUserData.elo = elo;
-    mUserData.countryFlag = country;
+    CG_User::fromData(mUserData,data);
     if(!last.isEmpty()){
         qDebug() << "Profiles most recent match: " << last;
     }
-}
-void CGProfile::requestUpdateProfile(QString name, QString pass)
-{
-    QCryptographicHash hasher(QCryptographicHash::Sha256);
-    hasher.addData(pass.toLocal8Bit());
-    QByteArray hpass = hasher.result().toHex();
 
+    emit avatarChanged(mUserData.avatar);
+    emit countryChanged(mUserData.countryFlag);
+    emit profileSet();
+}
+void CGProfile::requestUpdateProfile()
+{
     QJsonObject obj;
     QJsonArray array;
     obj["T"] = SET_USER_DATA;
     // name, pass, data
-    array.append(name);
-    QString pass_str = QString::fromLatin1(hpass,hpass.size());
-    array.append(pass_str);
+    array.append(mUserData.username);
+    array.append(QString::fromLatin1(mPass));
     array.append(CG_User::serializeUser(mUserData));
     obj["P"] = array;
     QJsonDocument doc;
     doc.setObject(obj);
     QByteArray output = doc.toBinaryData();
     mServer->writeMessage(output);
+}
+
+
+void CGProfile::setPassword(QByteArray byte)
+{
+    if(mPass != byte){
+        mPass = byte;
+    }
+}
+
+qreal CGProfile::winRatio()
+{
+    return 50.432;
 }
 
 CGProfile::~CGProfile()

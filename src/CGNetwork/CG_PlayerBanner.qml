@@ -6,6 +6,7 @@ Rectangle {
     radius: height
     border.width: 2
     property alias pieceSet:emblem.pieceSet
+    property alias player:nameText.text
     function setBanner(name,elo,country,avatar, color)
     {
         //avatarImg.source = avatar;
@@ -21,6 +22,7 @@ Rectangle {
         nameText.text  = name;
         emblem.emblemColor = color;
         avatarImg.source = avatar;
+
 
         if(color){
             emblem.anchors.left = undefined
@@ -40,7 +42,6 @@ Rectangle {
             emblem.border.color = "white"
             nameText.anchors.left = emblem.right;
             avatarFrame.anchors.right = flag.left;
-
         }
 
     }
@@ -106,5 +107,12 @@ Rectangle {
             asynchronous: true
             cache: false
         }
+    }
+
+    Behavior on y{
+        NumberAnimation{duration:450}
+    }
+    Behavior on height{
+        NumberAnimation{duration:450}
     }
 }

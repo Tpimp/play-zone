@@ -2,7 +2,6 @@ import QtQuick 2.8
 import QtQuick.Window 2.2
 import CGNetwork 1.0
 
-
 Window {
     id: background
     visible: true
@@ -16,7 +15,16 @@ Window {
     property string opavatar:""
     property string opflag:""
     property bool playerColor:false
+    property double  gameID:-1
+    onVisibilityChanged: {
+        if(gameView !== null && gameView !== undefined){
+            gameView.resizeBoard();
+        }
+    }
 
+    CGProfile{
+        id:profile
+    }
 
 
     Rectangle{
@@ -41,13 +49,14 @@ Window {
             State{
                 name:"LOGIN"
                 extend:""
-                PropertyChanges{target:loginView; state:"READY";}
+                //PropertyChanges{target:loginView; state:"READY";}
                 PropertyChanges{target:gameLoader; active:false;}
                 PropertyChanges{target:lobbyLoader; active:false;}
                 PropertyChanges{target:loginView; visible:true;}
             },
             State{
                 name:"LOBBY"
+                PropertyChanges{target:gameLoader; active:false;}
                 PropertyChanges{target:lobbyLoader; active:true;}
                 PropertyChanges{target:loginView; visible:false;}
             },
@@ -58,7 +67,7 @@ Window {
             }
 
         ]
-        state:""
+        state:"LOGIN"
     }
 
 
@@ -88,6 +97,8 @@ Window {
             loadingLoader.item.visible = false;
         }
         onLoggedIn: {
+            profile.setName(loginView.username)
+            profile.setPassword(loginView.getPassword())
             app.state = "LOBBY"
         }
     }
@@ -115,18 +126,19 @@ Window {
 
                     background.opponent = name;
                     background.opelo = elo;
-                    background.opavatar = avatar;
+                    background.opavatar =  avatar;
                     background.opflag = country;
                     background.playerColor = color;
+                    gameID = id;
                     app.state = "GAME";
                     loadingLoader.item.text.text = "";
                     loadingLoader.item.visible = false;
-
                 }
             }
         onLoaded: {
             if(lobbyLoader.item != undefined){
                 lobbyLoader.item.parent = app
+                lobbyLoader.item.setProfile(profile)
             }
         }
         active:false
@@ -136,16 +148,48 @@ Window {
         id:gameLoader
         anchors.fill: parent
         sourceComponent: GameView{
-            id:gameView
             visible:true
+            onGameOver: {
+                profile.requestUpdateProfile()
+                app.state = "LOBBY";
+            }
         }
         onLoaded: {
             if(gameLoader.item != undefined){
-                gameLoader.item.setProfile(playerProfile)
-                gameLoader.item.startNewGame(opponent,opelo,opflag, playerColor,opavatar);
+                background.gameView = gameLoader.item
+                gameLoader.item.setProfile(profile)
+                gameLoader.item.startNewGame(opponent,opelo,opflag, playerColor,opavatar,gameID);
             }
         }
         active:false
     }
+//    CG_Board{
+//        id:temp
+//        anchors.verticalCenter: parent.verticalCenter
+//        anchors.horizontalCenter: parent.horizontalCenter
+//        height: parent.width*.8
+//        width: height
+//        onPromote: {
+//            temp.interactive = false;
+//            promotePicker.to = to;
+//            promotePicker.from = from;
+//            promotePicker.visible = true;
+//        }
 
+//    }
+//    CG_PromotePicker{
+//        id: promotePicker
+//        anchors.centerIn:temp
+//        height:temp.height
+//        width:temp.width
+//        visible:false
+//        z:200
+//        property var from: null
+//        property var to:null
+//        onPieceChosen: {
+//            promotePicker.visible = false;
+//            temp.makeMove(from,to,piece,true);
+//            temp.interactive = true;
+//        }
+//    }
 }

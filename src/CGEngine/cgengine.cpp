@@ -2,11 +2,41 @@
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QDebug>
+
+const char* const CGEngine::mNames[] =  {"a8","b8", "c8", "d8", "e8", "f8", "g8", "h8",
+                                      "a7","b7", "c7", "d7", "e7", "f7", "g7", "h7",
+                                      "a6","b6", "c6", "d6", "e6", "f6", "g6", "h6",
+                                      "a5","b5", "c5", "d5", "e5", "f5", "g5", "h5",
+                                      "a4","b4", "c4", "d4", "e4", "f4", "g4", "h4",
+                                      "a3","b3", "c3", "d3", "e3", "f3", "g3", "h3",
+                                      "a2","b2", "c2", "d2", "e2", "f2", "g2", "h2",
+                                      "a1","b1", "c1", "d1", "e1", "f1", "g1", "h1"};
+
 CGEngine::CGEngine(QQuickItem* parent) : QQuickItem(parent)
 {
 
 }
 
+
+bool CGEngine::checkValidMove(QJsonArray moves, QString tile)
+{
+    if(moves.isEmpty()){
+        return false;
+    }
+    for(QJsonValue val : moves){
+        if(val.toString().contains(tile)){
+            return true;
+        }
+    }
+    return false;
+}
+
+QString CGEngine::getName(int index){
+    if(index >= 0 && index < 64){
+        return mNames[index];
+    }
+    return QString();
+}
 
 void CGEngine::resetBoard(QJsonArray json_board)
 {
@@ -34,7 +64,7 @@ void CGEngine::resetBoard(QJsonArray json_board)
     }
 }
 
-bool CGEngine::makeMove(int from, int to,QJsonObject move_data)
+bool CGEngine::makeMove(int from, int to,QJsonObject move_data, QString promote)
 {
     if(move_data.isEmpty()){
         return false;
@@ -69,21 +99,21 @@ bool CGEngine::makeMove(int from, int to,QJsonObject move_data)
     if(flags.contains('q')){ // queen side castle
         if(from > 8)
         {
-            emit pieceMoved(56,59);
+            emit pieceMoved(56,59,"");
         }
         else
         {
-            emit pieceMoved(0,3);
+            emit pieceMoved(0,3,"");
         }
     }
     if(flags.contains('k')){ // king side castle
         if(from > 8)
         {
-            emit pieceMoved(63,61);
+            emit pieceMoved(63,61,"");
         }
         else
         {
-            emit pieceMoved(7,5);
+            emit pieceMoved(7,5,"");
         }
     }
     if(flags.contains('b'))
@@ -92,13 +122,18 @@ bool CGEngine::makeMove(int from, int to,QJsonObject move_data)
     }
     if(flags.contains('p'))
     {
-        emit pieceMoved(from,to);
-        emit promotion(to);
+        emit pieceMoved(from,to,promote);
+        emit promotion(to,promote);
         return true;
     }
-    emit pieceMoved(from,to);
+    emit pieceMoved(from,to,"");
     return true;
 }
+
+void CGEngine::isInCheck( int index){
+    emit playerCheck(index);
+}
+
 
 void CGEngine::refresh(QJsonObject data, int tile)
 {
@@ -108,6 +143,10 @@ void CGEngine::refresh(QJsonObject data, int tile)
     else{
         emit refreshPiece(data["type"].toString(),data["color"].toString(),tile);
     }
+}
+
+void CGEngine::setCellSize(int size){
+    mCellSize = size;
 }
 
 CGEngine::~CGEngine()

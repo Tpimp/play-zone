@@ -6,5 +6,8 @@
         <file>LobbyView.qml</file>
         <file>CG_LoadingAnimation.qml</file>
         <file>CG_LoadingBall.qml</file>
+        <file>ProfileView.qml</file>
+        <file>MatchView.qml</file>
+        <file>ChatView.qml</file>
     </qresource>
 </RCC>

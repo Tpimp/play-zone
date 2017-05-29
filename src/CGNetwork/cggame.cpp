@@ -1,6 +1,5 @@
 #include "cggame.h"
 #include "cgserver.h"
-#include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
 
@@ -8,21 +7,26 @@ CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent)
 {
     mServer = CGServer::globalServer();
     //connect(mServer, &CGServer::gameMessageReceived, this, &CGGame::processGameMessage);
+    connect(mServer, &CGServer::opponentMoved, this, &CGGame::opponentMove);
+    connect(mServer, &CGServer::gameSynchronized, this, &CGGame::gameSynchronized);
+    connect(mServer, &CGServer::gameFinished, this, &CGGame::gameFinished);
 }
 
 
-bool CGGame::canMakeMove()
+int CGGame::gameID()
 {
-    return mPlayerColor == mCurrentTurn;
+    return mGameID;
 }
 
-
-void CGGame::makeMove(QString move)
+void CGGame::makeMove(int from, int to, QString fen, QString promote)
 {
     QJsonObject obj;
     QJsonArray array;
     obj["T"] = SEND_MOVE;
-    array.append(move);
+    array.append(from);
+    array.append(to);
+    array.append(fen);
+    array.append(promote);
     obj["P"] = array;
     QJsonDocument doc;
     doc.setObject(obj);
@@ -30,19 +34,51 @@ void CGGame::makeMove(QString move)
     mServer->writeMessage(output);
 }
 
-void CGGame::startNewGame(QString opponent, QString country, int elo, bool arewhite)
+void CGGame::sendResult(int result, QJsonObject move, QString fen, QString game)
 {
-    mCurrentTurn = true;
-    mPlayerColor = arewhite;
+    QJsonObject obj;
+    QJsonArray array;
+    obj["T"] = SEND_RESULT;
+    array.append(double(mGameID));
+    array.append(result);
+    array.append(move);
+    array.append(fen);
+    array.append(game);
+    obj["P"] = array;
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray output = doc.toBinaryData();
+    mServer->writeMessage(output);
+}
+
+void CGGame::sendSync()
+{
+    QJsonObject obj;
+    obj["T"] = SEND_SYNC;
+    obj["P"] = QJsonValue();
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray output = doc.toBinaryData();
+    mServer->writeMessage(output);
+}
+
+void CGGame::setGameID(quint64 id)
+{
+    if(mGameID != id){
+        mGameID = id;
+        emit gameIDChanged(id);
+    }
+}
+
+void CGGame::startNewGame(QString opponent, QString country, int elo, bool arewhite, quint64 id)
+{
     mOpponentElo = elo;
     mOpponent = opponent;
     mOpponentCountry = country;
+    mGameID = id;
 }
 
-void CGGame::processGameMessage(int func, QByteArray data)
-{
 
-}
 
 CGGame::~CGGame()
 {

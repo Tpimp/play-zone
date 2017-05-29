@@ -33,7 +33,7 @@ QImage CGFlagProvider::requestImage(const QString &id, QSize *size, const QSize 
     if(size){
         *size = QSize(width,height);
     }
-    QImage image_out(requestedSize.width() > 0 ? requestedSize : QSize(width,height),QImage::Format_RGB666);
+    QImage image_out(requestedSize.width() > 0 ? requestedSize : QSize(width,height),QImage::Format_RGB888);
     QVariantMap flag_data = mFlagMap[id].toMap();
     int id_int = flag_data.value("id").toInt();
     QString set = ":/images/";
