@@ -109,11 +109,11 @@ bool CGEngine::makeMove(int from, int to,QJsonObject move_data, QString promote)
     if(flags.contains('k')){ // king side castle
         if(from > 8)
         {
-            emit pieceMoved(63,61,"");
+            emit pieceMoved(63,61,""); // white
         }
         else
         {
-            emit pieceMoved(7,5,"");
+            emit pieceMoved(7,5,""); // black
         }
     }
     if(flags.contains('b'))
@@ -132,6 +132,11 @@ bool CGEngine::makeMove(int from, int to,QJsonObject move_data, QString promote)
 
 void CGEngine::isInCheck( int index){
     emit playerCheck(index);
+}
+
+void CGEngine::handleGameOver(bool is_draw, bool is_checkmate, bool is_stalemate, bool is_threefold, bool insufficient_material)
+{
+
 }
 
 

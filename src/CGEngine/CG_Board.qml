@@ -121,6 +121,10 @@ Item {
         var move_obj = board.game.move({from:from_tile.pos,to:to_tile.pos,promotion:move.promote});
         if(move_obj !== null){
             chessEngine.makeMove(from_tile.index,to_tile.index,move_obj,promote);
+            if(board.game.game_over()){
+                chessEngine.handleGameOver(game.board.in_draw(),board.game.in_checkmate(),board.game.in_stalemate(),
+                                           board.game.in_threefold_repetition(),board.game.insufficient_material())
+            }
         }
     }
 
@@ -134,11 +138,15 @@ Item {
             if(move_obj.flags.indexOf('p') >= 0 && override === undefined){ // if promote
                 board.game.undo();
                 board.promote(from_tile, to_tile);
-                //checkGameOver(move_obj);
             }
             else{
                 chessEngine.makeMove(from_tile.index,to_tile.index,move_obj,promote);
-                //checkGameOver(move_obj);
+                board.sendMove(from_tile.index,to_tile.index, board.game.fen(), promote);
+                if(board.game.game_over()){
+                    chessEngine.handleGameOver(game.board.in_draw(),board.game.in_checkmate(),board.game.in_stalemate(),
+                                               board.game.in_threefold_repetition(),board.game.insufficient_material())
+
+                }
             }
         }
         else
@@ -215,7 +223,6 @@ Item {
                     chessEngine.isInCheck(board.blackKing.index);
                 }
             }
-            board.sendMove(tile_from,tile_to, board.game.fen(), promote);
         }
         onPromotion:{
             var tile_obj = tileRepeater.itemAt(tile);
