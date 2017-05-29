@@ -3,12 +3,12 @@
     "libs": [
     ],
     "plugins": {
-        "CGWeb":"plugins/com/chessgames/web/CGWebd",
-        "CGNetwork":"plugins/com/chessgames/network/CGNetworkd",
-        "CGApp":"plugins/com/chessgames/app/CGAppd",
-        "CGFlags":"plugins/com/chessgames/flags/CGFlagsd",
-        "CGAvatars":"plugins/com/chessgames/avatars/CGAvatarsd",
-        "CGEngine":"plugins/com/chessgames/engine/CGEngined"
+        "CGWeb":"plugins/com/chessgames/web/CGWeb",
+        "CGNetwork":"plugins/com/chessgames/network/CGNetwork",
+        "CGApp":"plugins/com/chessgames/app/CGApp",
+        "CGFlags":"plugins/com/chessgames/flags/CGFlags",
+        "CGAvatars":"plugins/com/chessgames/avatars/CGAvatars",
+        "CGEngine":"plugins/com/chessgames/engine/CGEngine"
     },
     "qml": [
     ],

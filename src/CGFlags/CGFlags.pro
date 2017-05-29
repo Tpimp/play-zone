@@ -43,13 +43,12 @@ mac:copydata.commands = $(COPY_FILE) $$shell_path($$OUT_PWD/*.dylib) $$shell_pat
 first.depends = $(first) copydata
 export(first.depends)
 export(copydata.commands)
-QMAKE_EXTRA_TARGETS += first copydata
 
 !equals(_PRO_FILE_PWD_, $$OUT_PWD) {
     copy_qmldir.target = $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/qmldir)
     copy_qmldir.depends = $$_PRO_FILE_PWD_/qmldir
-    copy_qmldir.commands = $(COPY_FILE) \"$$replace(copy_qmldir.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmldir.target, /, $$QMAKE_DIR_SEP)\"
-    QMAKE_EXTRA_TARGETS += copy_qmldir
+    copy_qmldir.commands = $(MKDIR) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags) && $(COPY_FILE) \"$$replace(copy_qmldir.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmldir.target, /, $$QMAKE_DIR_SEP)\"
+    QMAKE_EXTRA_TARGETS += copy_qmldir first copydata
     PRE_TARGETDEPS += $$copy_qmldir.target
 }
 
@@ -64,7 +63,7 @@ unix {
 
 win32:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/qmldir)
 win64:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/*.dll) $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/qmldir)
-unix:!mac:QMAKE_CLEAN += $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/*)
+unix:QMAKE_CLEAN += $$shell_path($$path_to_deploy/plugins/com/chessgames/flags/*)
 
 RESOURCES += \
     flags.qrc
