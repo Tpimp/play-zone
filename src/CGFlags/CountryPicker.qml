@@ -15,12 +15,8 @@ Rectangle {
         Column{
             id: list
             anchors.fill: parent
-            add: Transition {
-                ParallelAnimation{
-                NumberAnimation { property: "x"; from: 300; to: 0; duration: 100 }
-                NumberAnimation { property: "scale"; from: .2; to: 1.0; duration: 100 }
-                alwaysRunToEnd: true
-                }
+            add: Transition {              
+                NumberAnimation { property: "scale"; from: .2; to: 1.0; duration: 90 }
             }
         }
     }

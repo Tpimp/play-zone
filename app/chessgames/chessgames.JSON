@@ -18,7 +18,7 @@
     "version": 0.3,
 	"globals":{
         "APP_PORT":5445,
-        "APP_IP":"104.152.255.173",
+        "APP_IP":"127.0.0.1",
         "APP_ID":"CG-Play-Zone",
 		"STATE":"OPEN-CG-HANDSHAKE"
 	}

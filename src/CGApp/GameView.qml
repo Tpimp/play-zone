@@ -19,6 +19,7 @@ Rectangle {
         playerProfile.setColor(!color);
         if(color){
             whiteLED.color = "red";
+
         }
         else{
             blackLED.color = "red";
@@ -26,12 +27,10 @@ Rectangle {
         if(!color){
             whitePlayer.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,true);
             blackPlayer.setBanner(name,elo,country,"image://avatars/"+avatar, false);
-            gameBoard.interactive = true;
         }
         else{
             blackPlayer.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,false);
             whitePlayer.setBanner(name,elo,country,"image://avatars/"+avatar,true);
-            gameBoard.interactive = false;
         }
         remoteGame.startNewGame(name,country,elo,!color,id);
         remoteGame.sendSync();
@@ -56,7 +55,29 @@ Rectangle {
             syncTimer.start()
         }
         onGameFinished: {
-            topRect.gameOver();
+            switch(result){
+            case -1: if(playerProfile.color){
+                    topRect.state = "POSTBW";
+                }
+                else{
+                    topRect.state = "POSTWW";
+                }
+                break;
+            case 0: topRect.state = "POSTDW";
+                    break;
+            case 1: if(playerProfile.color){
+                    topRect.state = "POSTWW";
+                }
+                else{
+                    topRect.state = "POSTBW";
+                }
+                break;
+            case 2: topRect.state = "RESIGNP1";
+                break;
+            case 3: topRect.state = "RESIGNP2";
+                break;
+            default: break;
+            }
         }
     }
     Timer{
@@ -70,6 +91,9 @@ Rectangle {
                 syncTimer.stop();
                 topRect.state = "GAME"
                 topRect.resetBoard();
+                console.log("Finished Synchronize");
+                //topRect.resetBoard();
+
                 whiteLED.anchors.leftMargin = -(whiteLED.width/2 - 2);
             }
             else{
@@ -81,6 +105,7 @@ Rectangle {
     states:[
         State{
             name:"MATCHED"
+            PropertyChanges {target:boardLoader; active:false;}
             extend:""
         },
         State{
@@ -103,11 +128,130 @@ Rectangle {
                 anchors.leftMargin:whiteLED.width * .4
             }
             PropertyChanges {target:boundingRect; visible:false;}
+            PropertyChanges {target:boardLoader; active:true;}
+        },
+
+        State{
+            name:"POSTBW"
+            extend:""
+            PropertyChanges {target:boardLoader; active:false}
+            PropertyChanges {target:matchedImage; visible:false;}
+            PropertyChanges {target:boundingRect; visible:true;}
+            PropertyChanges {
+                target: blackPlayer
+                anchors.margins:8
+                anchors.topMargin:2
+            }
+            PropertyChanges {
+                target: whitePlayer
+                anchors.margins:8
+                anchors.topMargin: 4
+            }
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            PropertyChanges { target:whiteLED; visible:false}
+            PropertyChanges { target:blackLED; visible:false}
+
+            AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            PropertyChanges{
+                target:centerText
+                visible:true
+                anchors.margins: 8
+                font.pixelSize: 16
+                anchors.bottomMargin:72
+                horizontalAlignment:Text.AlignRight
+                verticalAlignment:Text.AlignVCenter
+                text:"Black Wins By\nCheckmate"
+            }
+            PropertyChanges{
+                target:leaveButton
+                enabled:true
+                visible:true
+            }
+
+            // to do build post game view
+
         },
         State{
-            name:"POST"
+            name:"POSTWW"
+            extend:""
+            PropertyChanges {target:boardLoader; active:false}
+            PropertyChanges {target:matchedImage; visible:false;}
+            PropertyChanges {target:boundingRect; visible:true;}
+            PropertyChanges {
+                target: blackPlayer
+                anchors.margins:8
+                anchors.topMargin:2
+            }
+            PropertyChanges {
+                target: whitePlayer
+                anchors.margins:8
+                anchors.topMargin: 4
+            }
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            PropertyChanges { target:whiteLED; visible:false}
+            PropertyChanges { target:blackLED; visible:false}
 
+            AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            PropertyChanges{
+                target:centerText
+                visible:true
+                anchors.margins: 8
+                font.pixelSize: 16
+                anchors.bottomMargin:72
+                horizontalAlignment:Text.AlignRight
+                verticalAlignment:Text.AlignVCenter
+                text:"White Wins By\nCheckmate"
+            }
+            PropertyChanges{
+                target:leaveButton
+                enabled:true
+                visible:true
+            }
+
+            // to do build post game view
+
+        },
+        State{
+            name:"POSTDW"
+            extend:""
+            PropertyChanges {target:boardLoader; active:false}
+            PropertyChanges {target:matchedImage; visible:false;}
+            PropertyChanges {target:boundingRect; visible:true;}
+            PropertyChanges {
+                target: blackPlayer
+                anchors.margins:8
+                anchors.topMargin:2
+            }
+            PropertyChanges {
+                target: whitePlayer
+                anchors.margins:8
+                anchors.topMargin: 4
+            }
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            PropertyChanges { target:whiteLED; visible:false}
+            PropertyChanges { target:blackLED; visible:false}
+
+            AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            PropertyChanges{
+                target:centerText
+                visible:true
+                anchors.margins: 8
+                anchors.bottomMargin:72
+                font.pixelSize: 16
+                horizontalAlignment:Text.AlignRight
+                verticalAlignment:Text.AlignVCenter
+                text:"Game finished a Draw"
+            }
+            PropertyChanges{
+                target:leaveButton
+                enabled:true
+                visible:true
+            }
         }
+
     ]
 
     Rectangle{
@@ -121,12 +265,29 @@ Rectangle {
         radius:4
         border.width: 3
         Image{
+            id: matchedImage
             anchors.top:parent.top
             anchors.topMargin:parent.height*.08
             height:parent.height*.11
             anchors.horizontalCenter: parent.horizontalCenter
             source:"/images/PlayerMatched.png"
             fillMode: Image.PreserveAspectFit
+        }
+        CG_DarkButton{
+            id:leaveButton
+            anchors.left:parent.left
+            anchors.right:parent.right
+            anchors.bottom:parent.bottom
+            height:64
+            anchors.bottomMargin: 6
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            visible:false
+            enabled:false
+            text.text:"Leave"
+            mouse.onClicked: {
+                topRect.gameOver();
+            }
         }
     }
     Loader{
@@ -161,7 +322,7 @@ Rectangle {
                 }
             }
 
-            onSendResult: {
+            onGameOver: {
                 // do something to notify user game ended
                 remoteGame.sendResult(result,move,fen,game);
                 switch(result){
@@ -182,15 +343,14 @@ Rectangle {
             }
 
             onFinishedLoading: {
-                gameBoard.playerColor = playerProfile.color;
                 var cdate = new Date();
-                if(playerColor){
-                    interactive = true;
+                if(playerProfile.color)
+                {
+                    topRect.gameBoard.interactive = true;
                 }
                 else{
-                    interactive = false;
+                    topRect.gameBoard.interactive = false;
                 }
-
                 gameBoard.setHeader(whitePlayer.player,blackPlayer.player,cdate.toLocaleDateString())
             }
 
@@ -273,6 +433,7 @@ Rectangle {
         pieceSet: "/images/cg_kramnik.png"
     }
     Text{
+        id:centerText
         visible: boundingRect.visible
         anchors.top:whitePlayer.bottom
         anchors.bottom: blackPlayer.top

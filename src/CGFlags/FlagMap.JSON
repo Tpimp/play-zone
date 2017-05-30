@@ -374,7 +374,12 @@
         "fide":"VEN",
         "set":"East"
     },
-    "Slovakia":{
+    "Ukraine":{
+        "id":7,
+        "fide":"UKR",
+        "set":"Europe"
+    },
+	"Slovakia":{
         "id":0,
         "fide":"SVK",
         "set":"Europe2"

@@ -30,6 +30,9 @@ signals:
     void pushingPawn(int from, int to);
     void clearTile(int tile);
     void playerCheck(int index);
+    void gameOverCheckmate();
+    void gameOverDraw(int type);
+    void gameOverStaleMate();
 
 public slots:
     void resetBoard(QJsonArray json_board);

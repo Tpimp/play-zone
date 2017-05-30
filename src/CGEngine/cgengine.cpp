@@ -136,7 +136,23 @@ void CGEngine::isInCheck( int index){
 
 void CGEngine::handleGameOver(bool is_draw, bool is_checkmate, bool is_stalemate, bool is_threefold, bool insufficient_material)
 {
-
+    if(is_draw){
+        if(is_threefold){
+            emit gameOverDraw(2);
+        }
+        else if(insufficient_material){
+            emit gameOverDraw(1);
+        }
+        else{
+            emit gameOverDraw(0);
+        }
+    }
+    else if(is_checkmate){
+        emit gameOverCheckmate();
+    }
+    else if (is_stalemate){
+        emit gameOverStaleMate();
+    }
 }
 
 

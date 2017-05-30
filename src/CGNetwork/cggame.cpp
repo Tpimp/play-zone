@@ -39,7 +39,6 @@ void CGGame::sendResult(int result, QJsonObject move, QString fen, QString game)
     QJsonObject obj;
     QJsonArray array;
     obj["T"] = SEND_RESULT;
-    array.append(double(mGameID));
     array.append(result);
     array.append(move);
     array.append(fen);
