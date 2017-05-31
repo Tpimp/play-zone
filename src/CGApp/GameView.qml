@@ -91,9 +91,6 @@ Rectangle {
                 syncTimer.stop();
                 topRect.state = "GAME"
                 topRect.resetBoard();
-                console.log("Finished Synchronize");
-                //topRect.resetBoard();
-
                 whiteLED.anchors.leftMargin = -(whiteLED.width/2 - 2);
             }
             else{
@@ -111,24 +108,28 @@ Rectangle {
         State{
             name:"GAME"
             extend:"MATCHED"
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boardLoader.bottom; anchors.left: topRect.left; anchors.right:topRect.right}
-            AnchorChanges{target:blackPlayer;  anchors.top:undefined;anchors.bottom: boardLoader.top;anchors.left: topRect.left; anchors.right:topRect.right}
+            AnchorChanges{target:whitePlayer;  anchors.bottom:topRect.bottom;  anchors.top: undefined; anchors.left: topRect.left; anchors.right:topRect.right}
+            AnchorChanges{target:blackPlayer;  anchors.top:topRect.top;anchors.bottom: undefined;anchors.left: topRect.left; anchors.right:topRect.right}
+
             PropertyChanges {
                 target: blackPlayer
-                anchors.topMargin: 4
-                anchors.bottomMargin: 4
+                anchors.topMargin: 2
+                anchors.bottomMargin: 2
                 anchors.rightMargin:0
                 anchors.leftMargin:whiteLED.width * .4
+                height:topRect.height/12
             }
             PropertyChanges {
                 target: whitePlayer
-                anchors.bottomMargin: 4
-                anchors.topMargin: 4
+                anchors.bottomMargin: 2
+                anchors.topMargin: 2
                 anchors.rightMargin:0
                 anchors.leftMargin:whiteLED.width * .4
+                height:topRect.height/12
             }
             PropertyChanges {target:boundingRect; visible:false;}
             PropertyChanges {target:boardLoader; active:true;}
+            AnchorChanges{target:boardLoader; anchors.verticalCenter: undefined; anchors.top:blackPlayer.bottom;anchors.bottom: whitePlayer.top;anchors.left: topRect.left; anchors.right:topRect.right}
         },
 
         State{
@@ -293,11 +294,12 @@ Rectangle {
     Loader{
         id:boardLoader
         active:false
-        anchors.right: parent.right
-        anchors.left:parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        height: parent.width > parent.height ? parent.height:parent.width
+        anchors.top: blackPlayer.bottom
+        anchors.bottom: whitePlayer.top
+        anchors.left: topRect.left
+        anchors.right: topRect.right
         sourceComponent:  CG_Board{
+            anchors.fill: boardLoader
             onSendMove: {
                 remoteGame.makeMove(from,to,fen,promote);
             }
@@ -325,9 +327,6 @@ Rectangle {
             onGameOver: {
                 // do something to notify user game ended
                 remoteGame.sendResult(result,move,fen,game);
-                switch(result){
-                    case 0: console.log("finished game " + fen)
-                }
             }
             onPromote:{
                 if(blackLED.anchors.leftMargin === 0){
@@ -354,11 +353,11 @@ Rectangle {
                 gameBoard.setHeader(whitePlayer.player,blackPlayer.player,cdate.toLocaleDateString())
             }
 
-
         }
         onLoaded: {
             if(boardLoader.item){
                 topRect.gameBoard = boardLoader.item
+                //topRect.gameBoard.resizeBoard();
             }
         }
 
@@ -426,7 +425,7 @@ Rectangle {
         anchors.left: boundingRect.left
         anchors.right: boundingRect.right
         anchors.top:boundingRect.top
-        height:boundingRect.height/5
+        height:boundingRect.height/4
         anchors.topMargin:boundingRect.height*.25
         anchors.leftMargin:boundingRect.width/20
         anchors.rightMargin:anchors.leftMargin

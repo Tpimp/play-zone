@@ -3,10 +3,13 @@ import CGFlags 1.0
 
 Rectangle {
     id:banner
-    radius: height
+    radius: height -1
     border.width: 2
     property alias pieceSet:emblem.pieceSet
     property alias player:nameText.text
+    property string buttonIcon:""
+    signal buttonPressed();
+    signal lostFocus();
     function setBanner(name,elo,country,avatar, color)
     {
         //avatarImg.source = avatar;
@@ -43,7 +46,10 @@ Rectangle {
             nameText.anchors.left = emblem.right;
             avatarFrame.anchors.right = flag.left;
         }
-
+    }
+    function setGameModeLocal(){
+        //emblemLoader.active = false;
+        //playerButton.active = true;
     }
     CG_Emblem{
         id:emblem
@@ -54,6 +60,29 @@ Rectangle {
         border.width: 1
         height:parent.height-(12 +banner.border.width)
     }
+//    Loader{
+//        id:playerButton
+//        Image{
+//            id:button
+//            anchors.left: parent.left
+//            anchors.leftMargin: 8
+//            anchors.rightMargin: 8
+//            anchors.verticalCenter: parent.verticalCenter
+//            height:parent.height-(16 +banner.border.width)
+//            source:buttonIcon
+//            MouseArea{
+//                anchors.fill: parent
+//                onPressed: banner.buttonPressed()
+//                onClicked: banner.buttonPressed()
+//                onActiveFocusChanged: {
+//                    if(activeFocus !== this)
+//                    {
+//                        banner.lostFocus();
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     Text{
         id: nameText
@@ -65,7 +94,7 @@ Rectangle {
         anchors.rightMargin:4
         height:parent.height* .5
         width:parent.width*.45
-        font.pixelSize:(width/text.length < height/text.length ? width/text.length:height/text.length) + 18
+        font.pixelSize:(width/text.length < 16 ? width/text.length:16) + 6
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
@@ -76,7 +105,7 @@ Rectangle {
         anchors.bottom:parent.bottom
         anchors.bottomMargin: parent.height*.06
         height: nameText.height
-        font.pixelSize: nameText.font.pixelSize *.75
+        font.pixelSize: nameText.font.pixelSize *.85
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
@@ -94,7 +123,7 @@ Rectangle {
         id:avatarFrame
         anchors.verticalCenter: parent.verticalCenter
         anchors.right:flag.left
-        height:banner.height  *.65
+        height:banner.height  *.74
         width:height
         border.width: 2
         color:"#d4d4d4"

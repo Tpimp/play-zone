@@ -240,7 +240,6 @@ function resizeBoard(){
             }
         }
     }
-
 }
 
 

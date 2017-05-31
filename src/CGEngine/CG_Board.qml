@@ -36,11 +36,35 @@ Item {
 
     // after values are changed, redraw the board
     onCellSizeChanged:{
-        chessEngine.setCellSize(cellSize);
         board.resizeBoard();
     }
-
-
+    onBoldBorderChanged: {
+        board.resizeBoard();
+    }
+    onWidthChanged: {
+        if(board.width >= board.height){
+            boardBackground.width = board.height;
+            boardBackground.height = board.height;
+        }
+        else{
+            boardBackground.width = board.width;
+            boardBackground.height = board.width;
+        }
+        board.cellSize = (boardBackground.width -2)/8;
+        board.resizeBoard()
+    }
+    onHeightChanged: {
+        if(board.width >= board.height){
+            boardBackground.width = board.height;
+            boardBackground.height = board.height;
+        }
+        else{
+            boardBackground.width = board.width;
+            boardBackground.height = board.width;
+        }
+        board.cellSize = (boardBackground.width -2)/8;
+        board.resizeBoard()
+    }
     // CG_Board Specific functions
 
     // update pgn header items
@@ -50,46 +74,31 @@ Item {
 
     // function redraw all the board pieces
     function resizeBoard(){
-        if(board.boldBorder){
-            boardGrid.spacing = 1;
-            boardGrid.width = boardBackground.width-2;
-            boardGrid.height = boardBackground.height-2;
-            chessEngine.setCellSize(cellSize-1);
-            for(var index = 0; index < 64; index++){
-                var tile = tileRepeater.itemAt(index);
-                if(tile){
-                    tile.width = (cellSize - 1);
-                    tile.height = (cellSize - 1);
-                    if(tile.piece !== undefined && tile.piece !== null){
-                        tile.piece.x = tile.x;
-                        tile.piece.y = tile.y;
-                        tile.piece.width = tile.width;
-                        tile.piece.height = tile.height;
-                    }
+        chessEngine.setCellSize(board.cellSize);
+        boardMouse.cellSize = board.cellSize;
+        for(var index = 0; index < 64; index++){
+            var tile = tileRepeater.itemAt(index);
+            if(tile){
+                tile.width = board.cellSize;
+                tile.height = board.cellSize;
+                if(board.boldBorder){
+                    tile.border.width = 1;
+                }
+                else{
+                    tile.border.width = 0;
+                }
+                if(tile.piece !== undefined && tile.piece !== null){
+                    tile.piece.x = tile.x;
+                    tile.piece.y = tile.y;
+                    tile.piece.width = tile.width;
+                    tile.piece.height = tile.height;
                 }
             }
         }
-        else
-        {
-            boardGrid.width = boardBackground.width;
-            boardGrid.height = boardBackground.height;
-            boardGrid.spacing = 0;
-            chessEngine.setCellSize(cellSize);
-            for(var indexw = 0; indexw < 64; indexw++){
-                var tilew = tileRepeater.itemAt(index);
-                if(tilew){
-                    tilew.width = cellSize;
-                    tilew.height = cellSize;
-                    if(tilew.piece !== undefined && tilew.piece !== null){
-                        tilew.piece.x = tilew.x;
-                        tilew.piece.y = tilew.y;
-                        tilew.piece.width = tilew.width;
-                        tilew.piece.height = tilew.height;
-                    }
-                }
-            }
-        }
+        boardGrid.spacing =1;
+        boardGrid.spacing =0;
     }
+
 
     // redraw the pieces on the board
     function refreshBoard(){
@@ -307,12 +316,16 @@ Item {
 
     Rectangle{
         id:boardBackground
-        anchors.fill: parent
+        anchors.horizontalCenter:  parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
         color:"black"
+        width:parent.width >= parent.height ? parent.height:parent.width
+        height:width
         z:1
         Grid{
             id:boardGrid
-            anchors.centerIn: parent
+            anchors.fill: parent
+            anchors.margins: 1
             columns: 8
             z:2
                 Repeater{
@@ -488,6 +501,7 @@ Item {
 
     Component.onCompleted: {
         board.pieceComponent = Qt.createComponent("CG_Piece.qml");
+        board.resizeBoard();
         creationTimer.start()
     }
 }
