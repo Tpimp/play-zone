@@ -17,13 +17,6 @@ Rectangle {
     {
         topRect.state = "MATCHED";
         playerProfile.setColor(!color);
-        if(color){
-            whiteLED.color = "red";
-
-        }
-        else{
-            blackLED.color = "red";
-        }
         if(!color){
             whitePlayer.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,true);
             blackPlayer.setBanner(name,elo,country,"image://avatars/"+avatar, false);
@@ -90,8 +83,6 @@ Rectangle {
             if(syncTimer.count <=0){
                 syncTimer.stop();
                 topRect.state = "GAME"
-                topRect.resetBoard();
-                whiteLED.anchors.leftMargin = -(whiteLED.width/2 - 2);
             }
             else{
                 count -=1;
@@ -102,34 +93,38 @@ Rectangle {
     states:[
         State{
             name:"MATCHED"
-            PropertyChanges {target:boardLoader; active:false;}
             extend:""
         },
         State{
             name:"GAME"
             extend:"MATCHED"
-            AnchorChanges{target:whitePlayer;  anchors.bottom:topRect.bottom;  anchors.top: undefined; anchors.left: topRect.left; anchors.right:topRect.right}
-            AnchorChanges{target:blackPlayer;  anchors.top:topRect.top;anchors.bottom: undefined;anchors.left: topRect.left; anchors.right:topRect.right}
+            AnchorChanges{target:whitePlayer;  anchors.bottom:topRect.bottom;  anchors.top: boardLoader.bottom; anchors.left: topRect.left; anchors.right:topRect.right}
+            AnchorChanges{target:blackPlayer;  anchors.top:topRect.top;anchors.bottom: boardLoader.top;anchors.left: topRect.left; anchors.right:topRect.right}
 
             PropertyChanges {
                 target: blackPlayer
-                anchors.topMargin: 2
-                anchors.bottomMargin: 2
-                anchors.rightMargin:0
-                anchors.leftMargin:whiteLED.width * .4
-                height:topRect.height/12
+                anchors.topMargin:4
+                anchors.bottomMargin:8
+                anchors.leftMargin: 1
+                anchors.rightMargin: 1
             }
             PropertyChanges {
                 target: whitePlayer
-                anchors.bottomMargin: 2
-                anchors.topMargin: 2
-                anchors.rightMargin:0
-                anchors.leftMargin:whiteLED.width * .4
-                height:topRect.height/12
+                anchors.bottomMargin:4
+                anchors.leftMargin: 1
+                anchors.rightMargin: 1
+                anchors.topMargin: 8
             }
             PropertyChanges {target:boundingRect; visible:false;}
             PropertyChanges {target:boardLoader; active:true;}
-            AnchorChanges{target:boardLoader; anchors.verticalCenter: undefined; anchors.top:blackPlayer.bottom;anchors.bottom: whitePlayer.top;anchors.left: topRect.left; anchors.right:topRect.right}
+
+            StateChangeScript{ script:{
+                    whitePlayer.setGameModeLocal();
+                    whitePlayer.setTurn(true)
+                    blackPlayer.setGameModeLocal();
+                    topRect.resetBoard();
+                }
+            }
         },
 
         State{
@@ -150,8 +145,6 @@ Rectangle {
             }
             AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            PropertyChanges { target:whiteLED; visible:false}
-            PropertyChanges { target:blackLED; visible:false}
 
             AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
@@ -191,8 +184,6 @@ Rectangle {
             }
             AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            PropertyChanges { target:whiteLED; visible:false}
-            PropertyChanges { target:blackLED; visible:false}
 
             AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
@@ -232,8 +223,6 @@ Rectangle {
             }
             AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            PropertyChanges { target:whiteLED; visible:false}
-            PropertyChanges { target:blackLED; visible:false}
 
             AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
@@ -294,18 +283,18 @@ Rectangle {
     Loader{
         id:boardLoader
         active:false
-        anchors.top: blackPlayer.bottom
-        anchors.bottom: whitePlayer.top
         anchors.left: topRect.left
         anchors.right: topRect.right
+        anchors.verticalCenter: topRect.verticalCenter
+        height:topRect.height*.78
         sourceComponent:  CG_Board{
             anchors.fill: boardLoader
             onSendMove: {
                 remoteGame.makeMove(from,to,fen,promote);
             }
             onWhitesTurn: {
-                blackLED.anchors.leftMargin = 0;
-                whiteLED.anchors.leftMargin = -(whiteLED.width/2 - 2);
+                whitePlayer.setTurn(true);
+                blackPlayer.setTurn(false);
                 if(playerProfile.color){
                     interactive = true;
                 }
@@ -314,8 +303,8 @@ Rectangle {
                 }
             }
             onBlacksTurn: {
-                whiteLED.anchors.leftMargin = 0;
-                blackLED.anchors.leftMargin = -(blackLED.width/2 - 2);
+                blackPlayer.setTurn(true);
+                whitePlayer.setTurn(false);
                 if(!playerProfile.color){
                     interactive = true;
                 }
@@ -329,7 +318,7 @@ Rectangle {
                 remoteGame.sendResult(result,move,fen,game);
             }
             onPromote:{
-                if(blackLED.anchors.leftMargin === 0){
+                if(blackPlayer.getTurn()){
                     promotePicker.playerColor = true;
                 }
                 else{
@@ -357,7 +346,7 @@ Rectangle {
         onLoaded: {
             if(boardLoader.item){
                 topRect.gameBoard = boardLoader.item
-                //topRect.gameBoard.resizeBoard();
+                topRect.gameBoard.resizeBoard();
             }
         }
 
@@ -376,20 +365,6 @@ Rectangle {
             gameBoard.interactive = true
         }
     }
-
-    Rectangle{
-        id:whiteLED
-        anchors.top: whitePlayer.top
-        anchors.bottom: whitePlayer.bottom
-        width:height
-        color: "#00ff15"
-        radius:height
-        anchors.left:whitePlayer.left
-        border.width: 1
-        Behavior on anchors.leftMargin {
-            NumberAnimation{duration:550}
-        }
-    }
     CG_PlayerBanner{
         id:whitePlayer
         anchors.left: boundingRect.left
@@ -399,6 +374,7 @@ Rectangle {
         anchors.bottomMargin:boundingRect.height*.05
         anchors.leftMargin:boundingRect.width/20
         anchors.rightMargin:anchors.leftMargin
+        pieceSet: "/images/cg_kramnik2.png"
         MouseArea{
             anchors.fill: parent
             onPressed:{
@@ -407,30 +383,18 @@ Rectangle {
         }
     }
 
-    Rectangle{
-        id:blackLED
-        anchors.top: blackPlayer.top
-        anchors.bottom: blackPlayer.bottom
-        color: "#00ff15"
-        border.width: 2
-        width:height
-        radius:height
-        anchors.left:blackPlayer.left
-        Behavior on anchors.leftMargin {
-            NumberAnimation{duration:550}
-        }
-    }
     CG_PlayerBanner{
         id:blackPlayer
         anchors.left: boundingRect.left
         anchors.right: boundingRect.right
         anchors.top:boundingRect.top
-        height:boundingRect.height/4
+        height:boundingRect.height/5
         anchors.topMargin:boundingRect.height*.25
         anchors.leftMargin:boundingRect.width/20
         anchors.rightMargin:anchors.leftMargin
         pieceSet: "/images/cg_kramnik.png"
     }
+
     Text{
         id:centerText
         visible: boundingRect.visible

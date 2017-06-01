@@ -5,9 +5,10 @@ Rectangle {
     id:banner
     radius: height -1
     border.width: 2
-    property alias pieceSet:emblem.pieceSet
+    property string pieceSet:""
     property alias player:nameText.text
     property string buttonIcon:""
+    property var    emblem:undefined
     signal buttonPressed();
     signal lostFocus();
     function setBanner(name,elo,country,avatar, color)
@@ -27,39 +28,149 @@ Rectangle {
         avatarImg.source = avatar;
 
 
-        if(color){
-            emblem.anchors.left = undefined
-            emblem.anchors.right= banner.right
-            emblem.border.color = "black"
-
-            flag.anchors.right = undefined
-            flag.anchors.left= banner.left
-            nameText.anchors.left = flag.right;
-            avatarFrame.anchors.right = emblem.left;
-        }
-        else{
+        if(!color){
             banner.border.color = "white"
             banner.color = "black"
             nameText.color = "white"
             eloText.color = "white"
-            emblem.border.color = "white"
-            nameText.anchors.left = emblem.right;
-            avatarFrame.anchors.right = flag.left;
+            led.border.color = "white"
+            avatarFrame.border.color = "white"
         }
     }
     function setGameModeLocal(){
-        //emblemLoader.active = false;
-        //playerButton.active = true;
+        emblemLoader.active = false;
     }
-    CG_Emblem{
-        id:emblem
+    function setTurn(turn){
+        if(turn){
+            led.color = "green"
+        }
+        else{
+            led.color = "red"
+        }
+    }
+
+    function getTurn(){
+        return led.color === "green";
+    }
+
+    Rectangle{
+        id:led
         anchors.left: parent.left
-        anchors.leftMargin: 6
-        anchors.rightMargin: 6
+        anchors.leftMargin:1
         anchors.verticalCenter: parent.verticalCenter
+        height:parent.height - 12
+        width:height
+        radius:height
+        color:"red"
         border.width: 1
-        height:parent.height-(12 +banner.border.width)
+        Behavior on color{
+            ColorAnimation
+            {
+                duration: 350
+            }
+
+        }
     }
+
+    Loader{
+        id:emblemLoader
+        anchors.left: parent.left
+        anchors.leftMargin: 1
+        anchors.verticalCenter: parent.verticalCenter
+        height:led.height
+        width:led.width
+        sourceComponent:CG_Emblem{
+            id:emblem
+            anchors.fill: emblemLoader
+            border.width: 1
+            pieceSet: banner.pieceSet
+        }
+        onLoaded: {
+            if(emblemLoader.item){
+                banner.emblem = emblemLoader.item
+            }
+        }
+    }
+    Text{
+        id: nameText
+        anchors.top: parent.top
+        anchors.topMargin:2
+        anchors.leftMargin:2
+        anchors.left:led.right
+        anchors.right:avatarFrame.left
+        anchors.rightMargin:2
+        height:parent.height* .45
+        font.pixelSize:(width/text.length < 16 ? width/text.length:16) + 6
+        horizontalAlignment: Text.AlignLeft
+        verticalAlignment: Text.AlignVCenter
+    }
+    Text{
+        id: eloText
+        anchors.top: nameText.bottom
+        anchors.left:led.right
+        anchors.right:avatarFrame.left
+        anchors.bottom:parent.bottom
+        anchors.margins: 2
+        font.pixelSize:(width/text.length < 16 ? width/text.length:16) + 6
+        horizontalAlignment: Text.AlignLeft
+        verticalAlignment: Text.AlignVCenter
+    }
+    Rectangle{
+        id:avatarFrame
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top:parent.top
+        anchors.bottom:parent.bottom
+        anchors.topMargin:6
+        anchors.bottomMargin:6
+        width:height + 4
+        border.width: 2
+        color:"#d4d4d4"
+        radius:2
+        Image{
+            id: avatarImg
+            anchors.fill: parent
+            anchors.margins: 4
+            smooth:true
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+            cache: false
+        }
+    }
+    CG_Clock{
+        id:clock
+        color:"darkgrey"
+        text.color:"white"
+        anchors.left:avatarFrame.right
+        anchors.right: flag.left
+        anchors.top:parent.top
+        anchors.margins:8
+        height:banner.height*.38
+    }
+
+    CG_HalfMove{
+        color:"darkgrey"
+        text.color:"white"
+        anchors.left:avatarFrame.right
+        anchors.right: flag.left
+        anchors.bottom:parent.bottom
+        height:banner.height*.38
+        anchors.margins: 8
+    }
+
+    Image{
+        id: flag
+        anchors.right:parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.rightMargin:2
+        anchors.leftMargin: 2
+        width:led.height
+        height:width
+        smooth:true
+        fillMode: Image.PreserveAspectFit
+    }
+    // time
+    // move
+
 //    Loader{
 //        id:playerButton
 //        Image{
@@ -84,59 +195,11 @@ Rectangle {
 //        }
 //    }
 
-    Text{
-        id: nameText
-        anchors.top: parent.top
-        anchors.topMargin:parent.height*.05
-        anchors.leftMargin:8
-        anchors.left:emblem.right
-        anchors.right:avatarFrame.left
-        anchors.rightMargin:4
-        height:parent.height* .5
-        width:parent.width*.45
-        font.pixelSize:(width/text.length < 16 ? width/text.length:16) + 6
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-    }
-    Text{
-        id: eloText
-        anchors.left:nameText.left
-        anchors.right:nameText.right
-        anchors.bottom:parent.bottom
-        anchors.bottomMargin: parent.height*.06
-        height: nameText.height
-        font.pixelSize: nameText.font.pixelSize *.85
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-    }
 
-    Image{
-        id: flag
-        anchors.right:parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.rightMargin:4
-        anchors.leftMargin: 4
-        width:emblem.width
-        height:width
-    }
-    Rectangle{
-        id:avatarFrame
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.right:flag.left
-        height:banner.height  *.74
-        width:height
-        border.width: 2
-        color:"#d4d4d4"
-        radius:2
-        anchors.rightMargin:6
-        Image{
-            id: avatarImg
-            anchors.fill: parent
-            anchors.margins: 4
-            asynchronous: true
-            cache: false
-        }
-    }
+
+
+
+
 
     Behavior on y{
         NumberAnimation{duration:450}

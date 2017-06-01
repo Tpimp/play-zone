@@ -6,5 +6,7 @@
         <file>CG_TextField.qml</file>
         <file>CG_PlayerBanner.qml</file>
         <file>CG_Emblem.qml</file>
+        <file>CG_Clock.qml</file>
+        <file>CG_HalfMove.qml</file>
     </qresource>
 </RCC>
