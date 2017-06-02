@@ -14,6 +14,7 @@ public:
     Q_INVOKABLE void startNewGame(QString opponent, QString country, int elo, bool arewhite, quint64 id);
     Q_INVOKABLE int  gameID();
     Q_INVOKABLE void makeMove(int from, int to, QString fen, QString promote);
+    Q_INVOKABLE void sendDraw(int draw);
     Q_INVOKABLE void sendSync();
     Q_INVOKABLE void sendResult(int result, QJsonObject move, QString fen, QString game);
     ~CGGame();
@@ -24,7 +25,7 @@ signals:
     void gameSynchronized(int state);
     void gameFinished(int result, QJsonObject move, QString fen, QString game);
     void gameIDChanged(quint64 id);
-
+    void drawResponse(int response);
 
 public slots:
     void setGameID(quint64 id);

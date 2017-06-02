@@ -10,6 +10,7 @@ CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent)
     connect(mServer, &CGServer::opponentMoved, this, &CGGame::opponentMove);
     connect(mServer, &CGServer::gameSynchronized, this, &CGGame::gameSynchronized);
     connect(mServer, &CGServer::gameFinished, this, &CGGame::gameFinished);
+    connect(mServer, &CGServer::recievedDrawResponse, this, &CGGame::drawResponse);
 }
 
 
@@ -30,8 +31,19 @@ void CGGame::makeMove(int from, int to, QString fen, QString promote)
     obj["P"] = array;
     QJsonDocument doc;
     doc.setObject(obj);
-    QByteArray output = doc.toBinaryData();
-    mServer->writeMessage(output);
+    mServer->writeMessage( doc.toBinaryData());
+}
+
+
+void CGGame::sendDraw(int draw){
+    QJsonObject obj;
+    QJsonArray array;
+    obj["T"] = SEND_DRAW;
+    array.append(draw);
+    obj["P"] = array;
+    QJsonDocument doc;
+    doc.setObject(obj);
+    mServer->writeMessage( doc.toBinaryData());
 }
 
 void CGGame::sendResult(int result, QJsonObject move, QString fen, QString game)
@@ -46,8 +58,7 @@ void CGGame::sendResult(int result, QJsonObject move, QString fen, QString game)
     obj["P"] = array;
     QJsonDocument doc;
     doc.setObject(obj);
-    QByteArray output = doc.toBinaryData();
-    mServer->writeMessage(output);
+    mServer->writeMessage( doc.toBinaryData());
 }
 
 void CGGame::sendSync()
@@ -57,8 +68,7 @@ void CGGame::sendSync()
     obj["P"] = QJsonValue();
     QJsonDocument doc;
     doc.setObject(obj);
-    QByteArray output = doc.toBinaryData();
-    mServer->writeMessage(output);
+    mServer->writeMessage( doc.toBinaryData());
 }
 
 void CGGame::setGameID(quint64 id)

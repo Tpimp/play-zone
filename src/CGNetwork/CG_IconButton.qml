@@ -20,7 +20,7 @@ Rectangle {
         Image{
             id:icon
             anchors.fill: parent
-            anchors.margins: 4
+            anchors.margins: 5
             fillMode: Image.PreserveAspectFit
             smooth:true
             antialiasing: true
@@ -36,7 +36,7 @@ Rectangle {
         anchors.leftMargin:container.width*.01
         anchors.topMargin:1
         anchors.bottomMargin:1
-        anchors.rightMargin:container.radius
+        anchors.rightMargin:container.width*.02
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }

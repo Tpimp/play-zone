@@ -128,6 +128,13 @@ void CGServer::parseServerMessage(QByteArray message)
             }
             break;
         }
+        case SEND_DRAW:{
+            if(params.count() >= 1){
+                int response(params.at(0).toInt());
+                emit recievedDrawResponse(response);
+            }
+            break;
+        }
         case SET_USER_DATA:{
             if(params.count() > 0){
                 QString user_data = params.at(0).toString();

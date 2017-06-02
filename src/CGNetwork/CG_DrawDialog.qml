@@ -4,108 +4,184 @@ Rectangle {
     id:drawDialog
     radius: height -1
     border.width: 2
+    color: "lightgrey"
     signal requestResign()
     signal requestDraw();
+    signal acceptedDraw();
+    signal declinedDraw();
     function clearRow(){
         var children = buttonRow.children;
         for(var index = 0; index <children.length; index++){
             children[index].destroy();
         }
     }
+    function setAsked(){
+        drawDialog.state = "ASKED";
+    }
 
-    states:[
-        State{
+    function setWaitDraw(){
+        drawDialog.state = "ASKING";
+    }
+    function setWaitResign(){
+        drawDialog.state = "RESIGN";
+    }
+
+
+    function resetDraw(){
+        content.active = false;
+        content.sourceComponent = defaultComponent;
+        content.active = true;
+    }
+
+    states:[ State{
             name:"ASKING"
             PropertyChanges {
                 target: drawDialog
                 color:"darkgrey"
-
             }
-            StateChangeScript{script:{
-                        clearRow();
-                        var text = textComponent.createObject(buttonRow,{});
-                     }
-                 }
+            PropertyChanges {
+                target: content
+                active:false
+                sourceComponent: textDraw
+            }
+            PropertyChanges {
+                target: content
+                active:true
+            }
         },
         State{
             name:"ASKED"
-            StateChangeScript{script:{
-                    clearRow();
-                    var accept = buttonComponent.createObject(buttonRow,{"text.text":"Accept Draw",
-                                                                  "border.width":1,
-                                                                  "icon.source":"qrc:///images/thumb.png",
-                                                                  "height":buttonRow.height,
-                                                                  "iconBackground.color":"green",
-                                                                  "width":buttonRow.width * .46});
-                    var decline = buttonComponent.createObject(buttonRow,{"text.text":"Decline Draw",
-                                                                  "border.width":1,
-                                                                  "icon.source":"qrc:///images/thumb.png",
-                                                                   "icon.rotation":180,
-                                                                  "height":buttonRow.height,
-                                                                   "iconBackground.color":"red",
-                                                                  "width":buttonRow.width * .46});
-                }
+            PropertyChanges {
+                target: drawDialog
+                color:"lightgrey"
+            }
+            PropertyChanges {
+                target: content
+                active:false
+                sourceComponent:askedComponent
+            }
+            PropertyChanges {
+                target: content
+                active:true
             }
         },
         State{
-            name:"RESIGNING"
-            StateChangeScript{script:{
-                    clearRow();
-                    var text = textComponent.createObject(buttonRow,{"text":"Sending Resignation..."});
-
-                }
+            name:"RESIGN"
+            PropertyChanges {
+                target: drawDialog
+                color:"darkgrey"
+            }
+            PropertyChanges {
+                target: content
+                active:false
+                sourceComponent:textResign
+            }
+            PropertyChanges {
+                target: content
+                active:true
             }
         }
 
     ]
-    Grid{
-        id:buttonRow
+    Loader{
+        id:content
         anchors.fill: parent
         anchors.leftMargin: parent.width/10
         anchors.rightMargin:anchors.leftMargin
         anchors.topMargin:4
         anchors.bottomMargin: 4
-        spacing:buttonRow.width*.125
-        columns:4
-        add:Transition{
-            NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 550 }
-        }
-        CG_IconButton{
-            height:buttonRow.height
-            width:buttonRow.width*.46
-            icon.source: "qrc:///images/cg_draw.png"
-            text.text:"Draw"
-            iconBackground.color: "green"
-            mouse.onClicked:{
-                drawDialog.requestDraw()
-                drawDialog.state = "ASKING"
-            }
-        }
-        CG_IconButton{
-            height:buttonRow.height
-            width:buttonRow.width*.46
-            iconBackground.color: "red"
-            icon.source: "qrc:///images/cg_resign.png"
-            text.text:"Resign"
-            mouse.onClicked:{
-                drawDialog.requestResign();
-                drawDialog.state = "RESIGNING"
-            }
+        sourceComponent: defaultComponent
+        active:true
+        onLoaded: {
+            item.parent = content
         }
     }
     Component{
-        id:buttonComponent
-        CG_IconButton{}
-    }
-    Component{
-        id:textComponent
+        id:textDraw
         Text{
-            anchors.fill: parent
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             text:"Requesting Draw..."
             color:"white"
-            font.pixelSize: parent.height *.35
+            font.pixelSize: content.height *.35
+            height:content.height
+            width:content.width
         }
     }
+    Component{
+        id:textResign
+        Text{
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            text:"Sending Resignation..."
+            color:"white"
+            font.pixelSize: parent.height *.35
+            height:content.height
+            width:content.width
+        }
+    }
+
+    Component{
+        id:defaultComponent
+        Row{
+            anchors.fill: content
+            spacing:width*.02
+            populate:Transition{
+                NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 550 }
+            }
+            CG_IconButton{
+                height:content.height
+                width:content.width*.49
+                icon.source: "qrc:///images/cg_draw.png"
+                text.text:"Draw"
+                iconBackground.color: "green"
+                mouse.onClicked:{
+                    drawDialog.requestDraw()
+                }
+            }
+            CG_IconButton{
+                height:content.height
+                width:content.width*.49
+                iconBackground.color: "red"
+                icon.source: "qrc:///images/cg_resign.png"
+                text.text:"Resign"
+                mouse.onClicked:{
+                    drawDialog.requestResign();
+                }
+            }
+        }
+    }
+
+    Component{
+        id:askedComponent
+        Row{
+            anchors.fill: content
+            spacing:width*.02
+            populate:Transition{
+                NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 550 }
+            }
+            CG_IconButton{
+                height:content.height
+                width:content.width*.49
+                icon.source: "qrc:///images/thumb.png"
+                text.text:"Accpet Draw"
+                iconBackground.color: "green"
+                mouse.onClicked:{
+                    drawDialog.acceptedDraw();
+                }
+            }
+            CG_IconButton{
+                height:content.height
+                width:content.width*.49
+                iconBackground.color: "red"
+                icon.source: "qrc:///images/thumb.png"
+                text.text:"Decline Draw"
+                icon.rotation:180
+                mouse.onClicked:{
+                    drawDialog.declinedDraw();
+                }
+            }
+        }
+    }
+
 }

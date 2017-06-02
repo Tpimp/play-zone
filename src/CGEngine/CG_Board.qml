@@ -74,6 +74,9 @@ Item {
     function resign(){
         board.gameOver(2, boardLastMove, board.game.fen(), board.game.pgn());
     }
+    function sendDrawAccept(){
+        board.gameOver(0, boardLastMove, board.game.fen(), board.game.pgn());
+    }
 
     // function redraw all the board pieces
     function resizeBoard(){

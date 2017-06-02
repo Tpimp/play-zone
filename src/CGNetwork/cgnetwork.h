@@ -175,10 +175,9 @@ static const int SPECTATE_GAME    =  4645;
 // Game
 static const int CHOOSE_ATTRIB  =   5114;
 static const int SEND_MOVE      =   5345;
-static const int RESIGN_GAME    =   5899;
 static const int SEND_SYNC      =   5236;
 static const int SEND_RESULT    =   5246;
-static const int DRAW           =   5234;
+static const int SEND_DRAW      =   5234;
 static const int OPPONENT_DC    =   5232;
 
 

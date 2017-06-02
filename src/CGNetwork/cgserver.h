@@ -37,6 +37,7 @@ signals:
     void opponentMoved(QJsonObject move);
     void gameSynchronized(int state);
     void gameFinished(int result, QJsonObject move, QString fen, QString last);
+    void recievedDrawResponse(int response);
 
 public slots:
     void connectToHost(QString address, int port);

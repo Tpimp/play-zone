@@ -48,9 +48,53 @@ Rectangle {
         }
         onGameSynchronized: {
             syncTimer.count =1;
-            syncTimer.interval = 1000;
+            syncTimer.interval = 350;
             syncTimer.start()
         }
+        onDrawResponse: {
+            switch(response){
+                case 0:  // got draw offer
+                    drawTimer.start();
+                    if(playerProfile.color){
+                        blackPlayer.back.setAsked();
+                        blackPlayer.showBack = true;
+                        blackPlayer.stopReset();
+                    }
+                    else{
+                        whitePlayer.back.setAsked();
+                        whitePlayer.showBack = true;
+                        whitePlayer.stopReset();
+                    }
+                    break;
+                case 1: // got accepted draw
+                    blackPlayer.reset()
+                    whitePlayer.reset()
+                    gameBoard.sendDrawAccept();
+                    break;
+                case 2: // got decline
+                    if(playerProfile.color){
+                        blackPlayer.reset()
+                        blackPlayer.back.resetDraw();
+                    }
+                    else{
+                        whitePlayer.reset()
+                        whitePlayer.back.resetDraw();
+                    }
+                    break;
+                default: // reset
+                    drawTimer.stop();
+                    if(playerProfile.color){
+                        blackPlayer.reset()
+                        blackPlayer.back.resetDraw();
+                    }
+                    else{
+                        whitePlayer.reset()
+                        whitePlayer.back.resetDraw();
+                    }
+                    break;
+            }
+        }
+
         onGameFinished: {
             switch(result){
             case -2:
@@ -404,6 +448,28 @@ Rectangle {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
+
+    Timer{
+        id:drawTimer
+        running:false
+        interval:5000
+        repeat:false
+        onTriggered: {
+            if(playerProfile.color){
+                blackPlayer.reset()
+                blackPlayer.back.resetDraw();
+                remoteGame.sendDraw(2);
+
+            }
+            else{
+                whitePlayer.reset()
+                whitePlayer.back.resetDraw();
+                remoteGame.sendDraw(2);
+
+            }
+        }
+    }
+
     // Components used throught the game view
     Component{
         id: drawComponent
@@ -411,8 +477,33 @@ Rectangle {
             id:drawDialog
             anchors.fill: parent
             color:"#959595"
-            onRequestResign:{parent.stopReset();gameBoard.resign();}
-            onRequestDraw:{parent.stopReset();}
+            onRequestResign:{setWaitResign();parent.stopReset(); gameBoard.resign();}
+            onRequestDraw:{setWaitDraw(); parent.stopReset(); remoteGame.sendDraw(0); }
+            onAcceptedDraw:{
+                drawTimer.stop();
+                if(playerProfile.color){
+                    blackPlayer.reset()
+                    blackPlayer.back.resetDraw();
+                }
+                else{
+                    whitePlayer.reset()
+                    whitePlayer.back.resetDraw();
+                }
+                remoteGame.sendDraw(1);
+                gameBoard.sendDrawAccept();
+            }
+            onDeclinedDraw:{
+                drawTimer.stop();
+                if(playerProfile.color){
+                    blackPlayer.reset()
+                    blackPlayer.back.resetDraw();
+                }
+                else{
+                    whitePlayer.reset()
+                    whitePlayer.back.resetDraw();
+                }
+                remoteGame.sendDraw(2);
+            }
         }
     }
     Component{
@@ -420,7 +511,6 @@ Rectangle {
         CG_PlayerDialog{
             id:playerDialog
             anchors.fill: parent
-            color:"lightgrey"
         }
     }
 }
