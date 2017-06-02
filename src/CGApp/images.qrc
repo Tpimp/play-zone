@@ -1,13 +1,11 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/cg_draw.png</file>
         <file>images/cg_kramnik.png</file>
         <file>images/cg_kramnik2.png</file>
         <file>images/cg_logo.png</file>
         <file>images/cg_logo_all_caps.png</file>
         <file>images/cg_logo_hires_app.png</file>
         <file>images/cg_pieces.png</file>
-        <file>images/cg_resign.png</file>
         <file>images/cg_rightArrow.png</file>
         <file>images/cg_rightEnd.png</file>
         <file>images/cg_seven_segment.png</file>

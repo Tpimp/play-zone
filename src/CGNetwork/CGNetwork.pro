@@ -74,4 +74,5 @@ unix:QMAKE_CLEAN += $$shell_path($$path_to_deploy/plugins/com/chessgames/network
 
 
 RESOURCES += \
-    qml.qrc
+    qml.qrc \
+    images.qrc

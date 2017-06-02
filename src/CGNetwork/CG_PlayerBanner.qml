@@ -37,7 +37,7 @@ Rectangle {
             avatarFrame.border.color = "white"
         }
     }
-    function setGameModeLocal(){
+    function setGameMode(){
         emblemLoader.active = false;
     }
     function setTurn(turn){
@@ -66,9 +66,8 @@ Rectangle {
         Behavior on color{
             ColorAnimation
             {
-                duration: 350
+                duration: 500
             }
-
         }
     }
 
@@ -130,8 +129,9 @@ Rectangle {
             id: avatarImg
             anchors.fill: parent
             anchors.margins: 4
-            smooth:true
             fillMode: Image.PreserveAspectFit
+            smooth:true
+            antialiasing: true
             asynchronous: true
             cache: false
         }
@@ -165,40 +165,10 @@ Rectangle {
         anchors.leftMargin: 2
         width:led.height
         height:width
-        smooth:true
         fillMode: Image.PreserveAspectFit
+        smooth:true
+        antialiasing: true
     }
-    // time
-    // move
-
-//    Loader{
-//        id:playerButton
-//        Image{
-//            id:button
-//            anchors.left: parent.left
-//            anchors.leftMargin: 8
-//            anchors.rightMargin: 8
-//            anchors.verticalCenter: parent.verticalCenter
-//            height:parent.height-(16 +banner.border.width)
-//            source:buttonIcon
-//            MouseArea{
-//                anchors.fill: parent
-//                onPressed: banner.buttonPressed()
-//                onClicked: banner.buttonPressed()
-//                onActiveFocusChanged: {
-//                    if(activeFocus !== this)
-//                    {
-//                        banner.lostFocus();
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-
-
-
-
 
 
     Behavior on y{

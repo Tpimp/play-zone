@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/cg_draw.png</file>
+        <file>images/cg_resign.png</file>
+        <file>images/thumb.png</file>
+    </qresource>
+</RCC>

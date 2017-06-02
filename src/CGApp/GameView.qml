@@ -8,7 +8,7 @@ Rectangle {
     property var gameBoard:undefined
     signal gameOver();
     function resizeBoard(){
-        if(gameLoader.status == Loader.Ready && gameLoader.active){
+        if(boardLoader.status == Loader.Ready && boardLoader.active){
             gameBoard.resizeBoard();
         }
     }
@@ -18,12 +18,16 @@ Rectangle {
         topRect.state = "MATCHED";
         playerProfile.setColor(!color);
         if(!color){
-            whitePlayer.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,true);
-            blackPlayer.setBanner(name,elo,country,"image://avatars/"+avatar, false);
+            whitePlayer.banner.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,true);
+            blackPlayer.banner.setBanner(name,elo,country,"image://avatars/"+avatar, false);
+            blackPlayer.setBack(drawComponent);
+            whitePlayer.setBack(playerComponent);
         }
         else{
-            blackPlayer.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,false);
-            whitePlayer.setBanner(name,elo,country,"image://avatars/"+avatar,true);
+            blackPlayer.banner.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,false);
+            whitePlayer.banner.setBanner(name,elo,country,"image://avatars/"+avatar,true);
+            whitePlayer.setBack(drawComponent);
+            blackPlayer.setBack(playerComponent);
         }
         remoteGame.startNewGame(name,country,elo,!color,id);
         remoteGame.sendSync();
@@ -119,9 +123,9 @@ Rectangle {
             PropertyChanges {target:boardLoader; active:true;}
 
             StateChangeScript{ script:{
-                    whitePlayer.setGameModeLocal();
-                    whitePlayer.setTurn(true)
-                    blackPlayer.setGameModeLocal();
+                    whitePlayer.banner.setGameMode();
+                    whitePlayer.banner.setTurn(true)
+                    blackPlayer.banner.setGameMode();
                     topRect.resetBoard();
                 }
             }
@@ -260,7 +264,7 @@ Rectangle {
             anchors.topMargin:parent.height*.08
             height:parent.height*.11
             anchors.horizontalCenter: parent.horizontalCenter
-            source:"/images/PlayerMatched.png"
+            source:"qrc:///images/PlayerMatched.png"
             fillMode: Image.PreserveAspectFit
         }
         CG_DarkButton{
@@ -293,8 +297,8 @@ Rectangle {
                 remoteGame.makeMove(from,to,fen,promote);
             }
             onWhitesTurn: {
-                whitePlayer.setTurn(true);
-                blackPlayer.setTurn(false);
+                whitePlayer.banner.setTurn(true);
+                blackPlayer.banner.setTurn(false);
                 if(playerProfile.color){
                     interactive = true;
                 }
@@ -303,8 +307,8 @@ Rectangle {
                 }
             }
             onBlacksTurn: {
-                blackPlayer.setTurn(true);
-                whitePlayer.setTurn(false);
+                blackPlayer.banner.setTurn(true);
+                whitePlayer.banner.setTurn(false);
                 if(!playerProfile.color){
                     interactive = true;
                 }
@@ -339,7 +343,7 @@ Rectangle {
                 else{
                     topRect.gameBoard.interactive = false;
                 }
-                gameBoard.setHeader(whitePlayer.player,blackPlayer.player,cdate.toLocaleDateString())
+                gameBoard.setHeader(whitePlayer.banner.player,blackPlayer.banner.player,cdate.toLocaleDateString())
             }
 
         }
@@ -365,7 +369,7 @@ Rectangle {
             gameBoard.interactive = true
         }
     }
-    CG_PlayerBanner{
+    CG_GameBanner{
         id:whitePlayer
         anchors.left: boundingRect.left
         anchors.right: boundingRect.right
@@ -374,16 +378,10 @@ Rectangle {
         anchors.bottomMargin:boundingRect.height*.05
         anchors.leftMargin:boundingRect.width/20
         anchors.rightMargin:anchors.leftMargin
-        pieceSet: "/images/cg_kramnik2.png"
-        MouseArea{
-            anchors.fill: parent
-            onPressed:{
-                gameBoard.boldBorder = !gameBoard.boldBorder;
-            }
-        }
+        banner.pieceSet: "qrc:///images/cg_kramnik2.png"
     }
 
-    CG_PlayerBanner{
+    CG_GameBanner{
         id:blackPlayer
         anchors.left: boundingRect.left
         anchors.right: boundingRect.right
@@ -392,7 +390,7 @@ Rectangle {
         anchors.topMargin:boundingRect.height*.25
         anchors.leftMargin:boundingRect.width/20
         anchors.rightMargin:anchors.leftMargin
-        pieceSet: "/images/cg_kramnik.png"
+        banner.pieceSet: "qrc:///images/cg_kramnik.png"
     }
 
     Text{
@@ -412,5 +410,26 @@ Rectangle {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
-
+    // Components used throught the game view
+    Component{
+        id: drawComponent
+        CG_DrawDialog{
+            id:drawDialog
+            anchors.fill: parent
+            color:"#959595"
+            onRequestResign:{parent.stopReset();gameBoard.resign();}
+            onRequestDraw:{parent.stopReset();}
+        }
+    }
+    Component{
+        id: playerComponent
+        CG_PlayerDialog{
+            id:playerDialog
+            anchors.fill: parent
+            color:"lightgrey"
+        }
+    }
 }
+
+
+

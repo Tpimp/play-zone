@@ -8,5 +8,9 @@
         <file>CG_Emblem.qml</file>
         <file>CG_Clock.qml</file>
         <file>CG_HalfMove.qml</file>
+        <file>CG_GameBanner.qml</file>
+        <file>CG_DrawDialog.qml</file>
+        <file>CG_PlayerDialog.qml</file>
+        <file>CG_IconButton.qml</file>
     </qresource>
 </RCC>

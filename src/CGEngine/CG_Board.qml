@@ -71,6 +71,9 @@ Item {
     function setHeader(white, black, date){
         board.game.header('White',white,'Black',black,'Date',date);
     }
+    function resign(){
+
+    }
 
     // function redraw all the board pieces
     function resizeBoard(){
