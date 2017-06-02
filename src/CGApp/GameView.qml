@@ -54,7 +54,6 @@ Rectangle {
         onDrawResponse: {
             switch(response){
                 case 0:  // got draw offer
-                    drawTimer.start();
                     if(playerProfile.color){
                         blackPlayer.back.setAsked();
                         blackPlayer.showBack = true;
@@ -82,7 +81,6 @@ Rectangle {
                     }
                     break;
                 default: // reset
-                    drawTimer.stop();
                     if(playerProfile.color){
                         blackPlayer.reset()
                         blackPlayer.back.resetDraw();
@@ -333,6 +331,20 @@ Rectangle {
             anchors.fill: boardLoader
             onSendMove: {
                 remoteGame.makeMove(from,to,fen,promote);
+                if(playerProfile.color){
+                    if(blackPlayer.showBack){
+                        blackPlayer.showBack = false;
+                        blackPlayer.back.resetDraw();
+                        remoteGame.sendDraw(2);
+                    }
+                }
+                else{
+                    if(whitePlayer.showBack){
+                        whitePlayer.showBack = false;
+                        whitePlayer.back.resetDraw();
+                        remoteGame.sendDraw(2);
+                    }
+                }
             }
             onWhitesTurn: {
                 whitePlayer.banner.setTurn(true);
@@ -449,26 +461,6 @@ Rectangle {
         verticalAlignment: Text.AlignVCenter
     }
 
-    Timer{
-        id:drawTimer
-        running:false
-        interval:5000
-        repeat:false
-        onTriggered: {
-            if(playerProfile.color){
-                blackPlayer.reset()
-                blackPlayer.back.resetDraw();
-                remoteGame.sendDraw(2);
-
-            }
-            else{
-                whitePlayer.reset()
-                whitePlayer.back.resetDraw();
-                remoteGame.sendDraw(2);
-
-            }
-        }
-    }
 
     // Components used throught the game view
     Component{
@@ -480,7 +472,6 @@ Rectangle {
             onRequestResign:{setWaitResign();parent.stopReset(); gameBoard.resign();}
             onRequestDraw:{setWaitDraw(); parent.stopReset(); remoteGame.sendDraw(0); }
             onAcceptedDraw:{
-                drawTimer.stop();
                 if(playerProfile.color){
                     blackPlayer.reset()
                     blackPlayer.back.resetDraw();
@@ -493,7 +484,6 @@ Rectangle {
                 gameBoard.sendDrawAccept();
             }
             onDeclinedDraw:{
-                drawTimer.stop();
                 if(playerProfile.color){
                     blackPlayer.reset()
                     blackPlayer.back.resetDraw();

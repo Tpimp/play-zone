@@ -9,12 +9,6 @@ Rectangle {
     signal requestDraw();
     signal acceptedDraw();
     signal declinedDraw();
-    function clearRow(){
-        var children = buttonRow.children;
-        for(var index = 0; index <children.length; index++){
-            children[index].destroy();
-        }
-    }
     function setAsked(){
         drawDialog.state = "ASKED";
     }
@@ -168,17 +162,6 @@ Rectangle {
                 iconBackground.color: "green"
                 mouse.onClicked:{
                     drawDialog.acceptedDraw();
-                }
-            }
-            CG_IconButton{
-                height:content.height
-                width:content.width*.49
-                iconBackground.color: "red"
-                icon.source: "qrc:///images/thumb.png"
-                text.text:"Decline Draw"
-                icon.rotation:180
-                mouse.onClicked:{
-                    drawDialog.declinedDraw();
                 }
             }
         }
