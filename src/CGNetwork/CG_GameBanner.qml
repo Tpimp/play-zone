@@ -13,12 +13,16 @@ Flipable {
     function stopReset(){
         resetTimer.stop();
     }
+    function reset(){
+        showBack = false;
+    }
 
     onShowBackChanged:{
         if(showBack){
             resetTimer.start()
         }
     }
+
 
     front:CG_PlayerBanner{
         id:playerBanner

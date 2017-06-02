@@ -72,7 +72,7 @@ Item {
         board.game.header('White',white,'Black',black,'Date',date);
     }
     function resign(){
-
+        board.gameOver(2, boardLastMove, board.game.fen(), board.game.pgn());
     }
 
     // function redraw all the board pieces

@@ -22,8 +22,7 @@ Rectangle {
 
             }
             StateChangeScript{script:{
-                         clearRow();
-                         // TODO fix icon buttons , add "background ring", move images to CGNetwork
+                        clearRow();
                         var text = textComponent.createObject(buttonRow,{});
                      }
                  }
@@ -32,7 +31,6 @@ Rectangle {
             name:"ASKED"
             StateChangeScript{script:{
                     clearRow();
-                    // TODO fix icon buttons , add "background ring", move images to CGNetwork
                     var accept = buttonComponent.createObject(buttonRow,{"text.text":"Accept Draw",
                                                                   "border.width":1,
                                                                   "icon.source":"qrc:///images/thumb.png",

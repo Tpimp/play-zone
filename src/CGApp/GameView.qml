@@ -53,6 +53,14 @@ Rectangle {
         }
         onGameFinished: {
             switch(result){
+            case -2:
+                if(playerProfile.color){
+                    topRect.state = "RESIGNW";
+                }
+                else{
+                    topRect.state = "RESIGNB";
+                }
+                break;
             case -1: if(playerProfile.color){
                     topRect.state = "POSTBW";
                 }
@@ -69,9 +77,12 @@ Rectangle {
                     topRect.state = "POSTBW";
                 }
                 break;
-            case 2: topRect.state = "RESIGNP1";
-                break;
-            case 3: topRect.state = "RESIGNP2";
+            case 2: if(playerProfile.color){
+                    topRect.state = "RESIGNB";
+                }
+                else{
+                    topRect.state = "RESIGNW";
+                }
                 break;
             default: break;
             }
@@ -130,9 +141,8 @@ Rectangle {
                 }
             }
         },
-
         State{
-            name:"POSTBW"
+            name:"POST"
             extend:""
             PropertyChanges {target:boardLoader; active:false}
             PropertyChanges {target:matchedImage; visible:false;}
@@ -147,9 +157,6 @@ Rectangle {
                 anchors.margins:8
                 anchors.topMargin: 4
             }
-            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-
             AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
                 target:centerText
@@ -157,14 +164,30 @@ Rectangle {
                 anchors.margins: 8
                 font.pixelSize: 16
                 anchors.bottomMargin:72
-                horizontalAlignment:Text.AlignRight
+                horizontalAlignment:Text.AlignHCenter
                 verticalAlignment:Text.AlignVCenter
-                text:"Black Wins By\nCheckmate"
             }
             PropertyChanges{
                 target:leaveButton
                 enabled:true
                 visible:true
+            }
+            StateChangeScript{script:{
+                    whitePlayer.reset();
+                    blackPlayer.reset();
+                }
+            }
+        },
+
+        State{
+            name:"POSTBW"
+            extend:"POST"
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+
+            PropertyChanges{
+                target:centerText
+                text:blackPlayer.banner.player+" Wins By\nCheckmate"
             }
 
             // to do build post game view
@@ -172,38 +195,13 @@ Rectangle {
         },
         State{
             name:"POSTWW"
-            extend:""
-            PropertyChanges {target:boardLoader; active:false}
-            PropertyChanges {target:matchedImage; visible:false;}
-            PropertyChanges {target:boundingRect; visible:true;}
-            PropertyChanges {
-                target: blackPlayer
-                anchors.margins:8
-                anchors.topMargin:2
-            }
-            PropertyChanges {
-                target: whitePlayer
-                anchors.margins:8
-                anchors.topMargin: 4
-            }
+            extend:"POST"
             AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
 
-            AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
                 target:centerText
-                visible:true
-                anchors.margins: 8
-                font.pixelSize: 16
-                anchors.bottomMargin:72
-                horizontalAlignment:Text.AlignRight
-                verticalAlignment:Text.AlignVCenter
-                text:"White Wins By\nCheckmate"
-            }
-            PropertyChanges{
-                target:leaveButton
-                enabled:true
-                visible:true
+                text:whitePlayer.banner.player+" Wins By\nCheckmate"
             }
 
             // to do build post game view
@@ -211,41 +209,37 @@ Rectangle {
         },
         State{
             name:"POSTDW"
-            extend:""
-            PropertyChanges {target:boardLoader; active:false}
-            PropertyChanges {target:matchedImage; visible:false;}
-            PropertyChanges {target:boundingRect; visible:true;}
-            PropertyChanges {
-                target: blackPlayer
-                anchors.margins:8
-                anchors.topMargin:2
-            }
-            PropertyChanges {
-                target: whitePlayer
-                anchors.margins:8
-                anchors.topMargin: 4
-            }
+            extend:"POST"
             AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-
-            AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
                 target:centerText
-                visible:true
-                anchors.margins: 8
-                anchors.bottomMargin:72
-                font.pixelSize: 16
-                horizontalAlignment:Text.AlignRight
-                verticalAlignment:Text.AlignVCenter
                 text:"Game finished a Draw"
             }
+        },
+        State{
+            name:"RESIGNW"
+            extend:"POST"
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
-                target:leaveButton
-                enabled:true
-                visible:true
+                target:centerText
+                text:blackPlayer.banner.player+" Wins by opponent Resignation"
             }
-        }
 
+        },
+        State{
+            name:"RESIGNB"
+            extend:"POST"
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+
+            PropertyChanges{
+                target:centerText
+                text:whitePlayer.banner.player+" Wins by opponent Resignation"
+            }
+
+        }
     ]
 
     Rectangle{
