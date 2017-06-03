@@ -1,7 +1,7 @@
 import QtQuick 2.8
 import QtQuick.Window 2.2
 import CGNetwork 1.0
-
+import QtMultimedia 5.8
 Window {
     id: background
     visible: true
@@ -85,6 +85,12 @@ Window {
         }
     }
 
+    SoundEffect{
+        id:loginSound
+        source:"qrc:///sounds/successfulLogin.wav"
+        volume: .4
+        loops:0
+    }
     LoginView{
         anchors.fill: parent
         id:loginView
@@ -99,16 +105,22 @@ Window {
         onLoggedIn: {
             profile.setName(loginView.username)
             profile.setPassword(loginView.getPassword())
+            loginSound.play();
             app.state = "LOBBY"
         }
     }
-
+    SoundEffect{
+        id:disconnectSound
+        source:"qrc:///sounds/disconnect.wav"
+        loops:0
+    }
     Loader{
         id:lobbyLoader
         sourceComponent:LobbyView{
             id:lobbyView
                 anchors.fill: parent
                 onLogout:{
+                    disconnectSound.play();
                     loginView.disconnectFromHost();
                     app.state = "LOGIN";
                     loginView.status = "User Logout Successful";

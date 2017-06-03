@@ -1,7 +1,7 @@
 import QtQuick 2.8
 import CGNetwork 1.0
 import CGEngine 1.0
-
+import QtMultimedia 5.8
 Rectangle {
     id: topRect
     property var playerProfile:undefined
@@ -64,10 +64,12 @@ Rectangle {
                         whitePlayer.showBack = true;
                         whitePlayer.stopReset();
                     }
+                    drawSound.play();
                     break;
                 case 1: // got accepted draw
                     blackPlayer.reset()
                     whitePlayer.reset()
+                    drawAccept.play();
                     gameBoard.sendDrawAccept();
                     break;
                 case 2: // got decline
@@ -102,6 +104,7 @@ Rectangle {
                 else{
                     topRect.state = "RESIGNB";
                 }
+                resignSound.play();
                 break;
             case -1: if(playerProfile.color){
                     topRect.state = "POSTBW";
@@ -111,6 +114,7 @@ Rectangle {
                 }
                 break;
             case 0: topRect.state = "POSTDW";
+                    staleSound.play();
                     break;
             case 1: if(playerProfile.color){
                     topRect.state = "POSTWW";
@@ -118,6 +122,7 @@ Rectangle {
                 else{
                     topRect.state = "POSTBW";
                 }
+                wonSound.play()
                 break;
             case 2: if(playerProfile.color){
                     topRect.state = "RESIGNB";
@@ -125,6 +130,7 @@ Rectangle {
                 else{
                     topRect.state = "RESIGNW";
                 }
+                wonSound.play()
                 break;
             default: break;
             }
@@ -330,6 +336,7 @@ Rectangle {
         sourceComponent:  CG_Board{
             anchors.fill: boardLoader
             onSendMove: {
+                moveSound.play();
                 remoteGame.makeMove(from,to,fen,promote);
                 if(playerProfile.color){
                     if(blackPlayer.showBack){
@@ -365,6 +372,12 @@ Rectangle {
                 else{
                     interactive = false;
                 }
+            }
+            onChecked: {
+                checkSound.play()
+            }
+            onWrongMove: {
+                wrongSound.play();
             }
 
             onGameOver: {
@@ -469,8 +482,8 @@ Rectangle {
             id:drawDialog
             anchors.fill: parent
             color:"#959595"
-            onRequestResign:{setWaitResign();parent.stopReset(); gameBoard.resign();}
-            onRequestDraw:{setWaitDraw(); parent.stopReset(); remoteGame.sendDraw(0); }
+            onRequestResign:{gameBoard.resign(); setWaitResign();parent.stopReset(); resignSound.play();}
+            onRequestDraw:{drawSound.play(); setWaitDraw(); parent.stopReset(); remoteGame.sendDraw(0); }
             onAcceptedDraw:{
                 if(playerProfile.color){
                     blackPlayer.reset()
@@ -480,6 +493,7 @@ Rectangle {
                     whitePlayer.reset()
                     whitePlayer.back.resetDraw();
                 }
+                drawAccept.play();
                 remoteGame.sendDraw(1);
                 gameBoard.sendDrawAccept();
             }
@@ -502,6 +516,47 @@ Rectangle {
             id:playerDialog
             anchors.fill: parent
         }
+    }
+    SoundEffect{
+        id:checkSound
+        source:"qrc:///sounds/check.wav"
+        loops:0
+    }
+    SoundEffect{
+        id:moveSound
+        source:"qrc:///sounds/move.wav"
+        loops:0
+    }
+    SoundEffect{
+        id:wrongSound
+        source:"qrc:///sounds/wrongMove.wav"
+        loops:0
+    }
+    SoundEffect{
+        id:drawSound
+        source:"qrc:///sounds/drawOffer.wav"
+        loops:0
+    }
+    SoundEffect{
+        id:resignSound
+        source:"qrc:///sounds/resign.wav"
+        loops:0
+    }
+    SoundEffect{
+        id:drawAccept
+        source:"qrc:///sounds/drawOfferAccepted.wav"
+        loops:0
+    }
+    SoundEffect{
+        id:wonSound
+        source:"qrc:///sounds/gameWon.wav"
+        loops:0
+    }
+    SoundEffect{
+        id:staleSound
+        source:"qrc:///sounds/stalemate.wav"
+        loops:0
+
     }
 }
 

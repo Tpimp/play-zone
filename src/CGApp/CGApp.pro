@@ -66,4 +66,5 @@ unix:QMAKE_CLEAN += $$shell_path($$path_to_deploy/plugins/com/chessgames/app/*)
 RESOURCES += \
     qml.qrc \
     images.qrc \
-    fonts.qrc
+    fonts.qrc \
+    sounds.qrc

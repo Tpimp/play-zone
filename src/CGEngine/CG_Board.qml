@@ -26,6 +26,8 @@ Item {
     signal sendMove(int from, int to, string fen, string promote);
     signal whitesTurn();
     signal blacksTurn();
+    signal checked();
+    signal wrongMove();
     signal promote(var from, var to);
     signal gameOver(int result, var move, string fen, string game);
     signal pieceTaken(var piece);
@@ -172,6 +174,7 @@ Item {
             from_tile.piece.selected = false;
             from_tile.piece.x = from_tile.x;
             from_tile.piece.y = from_tile.y;
+            board.wrongMove();
         }
         clearHeldPiece();
     }
@@ -251,7 +254,9 @@ Item {
             checkText.x = tile_obj.x - (cellSize/2);
             checkText.y = tile_obj.y;
             checkText.visible = true;
+            board.checked();
             checkAnimation.start();
+
         }
         onGameOverCheckmate: {
             var result;
