@@ -80,14 +80,16 @@ signals:
 
 
 public slots:
+    void gotRefresh(QString user, QString recent);
     void setUserProfile(QString &data, QString &last);
     void requestUpdateProfile();
 
 protected:
-    bool       mColor;
-    QByteArray mPass;
-    CGServer  *mServer;
-    CG_User    mUserData;
+    bool        mColor;
+    QJsonObject mRecentGame;
+    QByteArray  mPass;
+    CGServer   *mServer;
+    CG_User     mUserData;
 };
 
 #endif // CGPROFILE_H

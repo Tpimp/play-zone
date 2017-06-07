@@ -7,6 +7,7 @@ Rectangle {
     border.width: 2
     property string pieceSet:""
     property alias player:nameText.text
+    property alias elo:eloText.text
     property string buttonIcon:""
     property var    emblem:undefined
     signal buttonPressed();
@@ -37,6 +38,10 @@ Rectangle {
             avatarFrame.border.color = "white"
         }
     }
+    function setMove(move){
+        halfMove.text.text = move;
+    }
+
     function setGameMode(){
         emblemLoader.active = false;
     }
@@ -144,17 +149,21 @@ Rectangle {
         anchors.right: flag.left
         anchors.top:parent.top
         anchors.margins:8
-        height:banner.height*.38
+        height:banner.height*.34
     }
 
     CG_HalfMove{
+        id:halfMove
         color:"darkgrey"
         text.color:"white"
+        border.width: 1
         anchors.left:avatarFrame.right
         anchors.right: flag.left
         anchors.bottom:parent.bottom
-        height:banner.height*.38
+        height:banner.height*.32
         anchors.margins: 8
+        anchors.leftMargin: parent.width/12
+        anchors.rightMargin:anchors.leftMargin
     }
 
     Image{

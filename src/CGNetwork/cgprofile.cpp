@@ -10,6 +10,7 @@ CGProfile::CGProfile(QQuickItem *parent) : QQuickItem(parent)
     connect(mServer, &CGServer::userProfileData,this,&CGProfile::setUserProfile);
     connect(mServer, &CGServer::setUserData,this,&CGProfile::setUserProfile);
     connect(mServer, &CGServer::failedToSetUserData,this,&CGProfile::failedToSaveChanges);
+    connect(mServer, &CGServer::refreshUserData , this, &CGProfile::gotRefresh);
 }
 
 bool CGProfile::color()
@@ -103,6 +104,13 @@ int CGProfile::gamesPlayed()
 bool CGProfile::isValid()
 {
     return mUserData.isValid;
+}
+
+void CGProfile::gotRefresh(QString user, QString recent){
+    CG_User::fromData(mUserData,user);
+    QJsonDocument doc = QJsonDocument::fromJson(recent.toLocal8Bit());
+    mRecentGame = doc.object();
+    emit profileSet();
 }
 
 void CGProfile::setName(QString name)

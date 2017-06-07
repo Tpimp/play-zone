@@ -9,13 +9,19 @@ Rectangle {
     onProfileChanged: {
         if(profile !== undefined){
             flag.source = "image://flags/" +profile.flag
-            profile.countryChanged.connect(setFlag)
+            profile.profileSet.connect(updateProfile)
             username.text = profile.name
             eloText.text = profile.elo
+
         }
     }
     function setFlag(){
         flag.source = "image://flags/" +match.profile.flag
+    }
+    function updateProfile(){
+        flag.source = "image://flags/" +profile.flag
+        username.text = profile.name
+        eloText.text = profile.elo
     }
 
     Image{

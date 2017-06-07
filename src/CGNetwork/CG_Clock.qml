@@ -2,7 +2,7 @@ import QtQuick 2.8
 
 Rectangle{
     id: clock
-    radius:height -5
+    radius:4
     property alias text:text
     Text{
         id:text

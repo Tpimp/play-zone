@@ -45,6 +45,24 @@ Rectangle {
         id:remoteGame
         onOpponentMove: {
             gameBoard.makeRemoteMove(move);
+            var lastmove = gameBoard.getLastMove()
+            if(playerProfile.color){
+                if(lastmove){
+                    blackPlayer.setMove(lastmove)
+                }
+                else{
+                    blackPlayer.setMove("")
+                }
+            }
+            else{
+                if(lastmove){
+                    whitePlayer.setMove(gameBoard.getLastMove())
+                }
+                else{
+                    whitePlayer.setMove("")
+                    blackPlayer.setMove("")
+                }
+            }
         }
         onGameSynchronized: {
             syncTimer.count =1;
@@ -96,20 +114,31 @@ Rectangle {
         }
 
         onGameFinished: {
+            var white_elo = parseInt(whitePlayer.front.elo)
+            var black_elo = parseInt(blackPlayer.front.elo)
+
             switch(result){
             case -2:
                 if(playerProfile.color){
+                    white_elo -= 5;
+                    black_elo +=5;
                     topRect.state = "RESIGNW";
                 }
                 else{
+                    black_elo -=5;
+                    white_elo += 5;
                     topRect.state = "RESIGNB";
                 }
                 resignSound.play();
                 break;
             case -1: if(playerProfile.color){
+                    white_elo -= 5;
+                    black_elo += 5;
                     topRect.state = "POSTBW";
                 }
                 else{
+                    white_elo += 5;
+                    black_elo -=5;
                     topRect.state = "POSTWW";
                 }
                 break;
@@ -117,23 +146,33 @@ Rectangle {
                     staleSound.play();
                     break;
             case 1: if(playerProfile.color){
+                    white_elo += 5;
+                    black_elo -=5;
                     topRect.state = "POSTWW";
                 }
                 else{
+                    white_elo -= 5;
+                    black_elo +=5;
                     topRect.state = "POSTBW";
                 }
                 wonSound.play()
                 break;
             case 2: if(playerProfile.color){
+                    white_elo += 5;
+                    black_elo -=5;
                     topRect.state = "RESIGNB";
                 }
                 else{
+                    white_elo -= 5;
+                    black_elo +=5;
                     topRect.state = "RESIGNW";
                 }
                 wonSound.play()
                 break;
             default: break;
             }
+            whitePlayer.front.elo = white_elo;
+            blackPlayer.front.elo = black_elo;
         }
     }
     Timer{
@@ -205,7 +244,9 @@ Rectangle {
                 anchors.margins:8
                 anchors.topMargin: 4
             }
-            AnchorChanges{target:centerText;anchors.bottom:boundingRect.bottom;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            //AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:centerText;anchors.bottom:leaveButton.top;  anchors.top: undefined; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
                 target:centerText
                 visible:true
@@ -230,25 +271,21 @@ Rectangle {
         State{
             name:"POSTBW"
             extend:"POST"
-            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
 
             PropertyChanges{
                 target:centerText
+                visible:true
                 text:blackPlayer.banner.player+" Wins By\nCheckmate"
             }
-
-            // to do build post game view
 
         },
         State{
             name:"POSTWW"
             extend:"POST"
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
 
             PropertyChanges{
                 target:centerText
+                visible:true
                 text:whitePlayer.banner.player+" Wins By\nCheckmate"
             }
 
@@ -258,20 +295,18 @@ Rectangle {
         State{
             name:"POSTDW"
             extend:"POST"
-            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
                 target:centerText
+                visible:true
                 text:"Game finished a Draw"
             }
         },
         State{
             name:"RESIGNW"
             extend:"POST"
-            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
                 target:centerText
+                visible:true
                 text:blackPlayer.banner.player+" Wins by opponent Resignation"
             }
 
@@ -279,11 +314,9 @@ Rectangle {
         State{
             name:"RESIGNB"
             extend:"POST"
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-
-            PropertyChanges{
+           PropertyChanges{
                 target:centerText
+                visible:true
                 text:whitePlayer.banner.player+" Wins by opponent Resignation"
             }
 
@@ -308,6 +341,23 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             source:"qrc:///images/PlayerMatched.png"
             fillMode: Image.PreserveAspectFit
+        }
+        Text{
+            id:centerText
+            visible: false
+            color:"white"
+            font.bold:true
+            styleColor: "black"
+            style: Text.Outline
+            text:"VS"
+            font.family: "Comic Sans MS"
+            font.pixelSize: matchedImage.height
+            anchors.bottom:leaveButton.top
+            anchors.bottomMargin:parent.height*.02
+            anchors.left:parent.left
+            anchors.right:parent.right
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
         }
         CG_DarkButton{
             id:leaveButton
@@ -337,6 +387,24 @@ Rectangle {
             anchors.fill: boardLoader
             onSendMove: {
                 moveSound.play();
+                var lastmove = gameBoard.getLastMove()
+                if(playerProfile.color){
+                    if(lastmove){
+                        whitePlayer.setMove(gameBoard.getLastMove())
+                    }
+                    else{
+                        blackPlayer.setMove("")
+                    }
+                }
+                else{
+                    if(lastmove){
+                        blackPlayer.setMove(lastmove)
+                    }
+                    else{
+                        whitePlayer.setMove("")
+                        blackPlayer.setMove("")
+                    }
+                }
                 remoteGame.makeMove(from,to,fen,promote);
                 if(playerProfile.color){
                     if(blackPlayer.showBack){
@@ -456,23 +524,7 @@ Rectangle {
         banner.pieceSet: "qrc:///images/cg_kramnik.png"
     }
 
-    Text{
-        id:centerText
-        visible: boundingRect.visible
-        anchors.top:whitePlayer.bottom
-        anchors.bottom: blackPlayer.top
-        anchors.left:boundingRect.left
-        anchors.right:boundingRect.right
-        color:"white"
-        font.bold:true
-        styleColor: "black"
-        style: Text.Outline
-        text:"VS"
-        font.family: "Comic Sans MS"
-        font.pixelSize: height*.45
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-    }
+
 
 
     // Components used throught the game view

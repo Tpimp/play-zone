@@ -146,6 +146,16 @@ void CGServer::parseServerMessage(QByteArray message)
             }
             break;
         }
+        case REFRESH_USER_DATA:{
+            if(params.count() >= 1){
+                QString user_str = params.at(0).toString();
+                QJsonDocument doc2 = QJsonDocument::fromJson(user_str.toLocal8Bit());
+                QJsonArray data = doc2.array();
+                QString user_data = data.at(0).toString();
+                QString recent = data.at(1).toString();
+                emit refreshUserData(user_data,recent);
+            }
+        }
         default: break;
     }
 

@@ -79,6 +79,13 @@ Item {
     function sendDrawAccept(){
         board.gameOver(0, boardLastMove, board.game.fen(), board.game.pgn());
     }
+    function getLastMove(){
+        var history = board.game.history();
+        if(history.length > 0){
+            return history[history.length-1];
+        }
+        return null;
+    }
 
     // function redraw all the board pieces
     function resizeBoard(){
@@ -124,6 +131,12 @@ Item {
         board.moves = [];
     }
 
+    function getCellName(index){
+        var tile = tileRepeater.itemAt(index);
+        if(tile){
+            return tile.pos;
+        }
+    }
 
     function removePiece(index){
         var tile = tileRepeater.itemAt(index)

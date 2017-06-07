@@ -29,6 +29,8 @@ signals:
     void userProfileData(QString &data, QString &last);
     void setUserData(QString &data, QString &last);
     void failedToSetUserData();
+    void refreshUserData(QString user, QString recent);
+
     // lobby
     void lobbyStartedMatchmaking(int type);
     void lobbyFoundMatch(QJsonObject opponent);

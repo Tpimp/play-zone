@@ -16,6 +16,9 @@ Flipable {
     function reset(){
         showBack = false;
     }
+    function setMove(move){
+        playerBanner.setMove(move)
+    }
 
     onShowBackChanged:{
         if(showBack){
