@@ -1,5 +1,6 @@
 # C++ objects and libs
 
+*.DS_Store
 *.slo
 *.lo
 *.o
@@ -36,3 +37,11 @@ Makefile*
 # QtCtreator CMake
 CMakeLists.txt.user
 
+app/chessgames/plugins/.DS_Store
+app/chessgames/plugins/com/.DS_Store
+app/chessgames/plugins/com/chessgames/.DS_Store
+app/chessgames/plugins/com/chessgames/avatars/.DS_Store
+installer/packages/com.chesgames.playzone/.DS_Store
+installer/packages/.DS_Store
+installer/packages/com.chesgames.playzone/data/.DS_Store
+src/.DS_Store

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<Package>
+    <DisplayName>Play-Zone</DisplayName>
+    <Description>Base Application</Description>
+    <Version>0.3.0</Version>
+    <ReleaseDate>2017-06-04</ReleaseDate>
+    <Name>com.chessgames.playzone</Name>
+    <Licenses>
+        <License name="Alpha License Agreement" file="license.txt" />
+    </Licenses>
+    <Default>true</Default>
+	<Script>installscript.qs</Script>
+    <UserInterfaces>
+        <UserInterface>shortcuts.ui</UserInterface>
+    </UserInterfaces>
+    <Essential>true</Essential>
+</Package>

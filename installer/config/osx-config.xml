@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<Installer>
+    <Name>Chess Games: Play-Zone</Name>
+    <Version>0.3.A</Version>
+    <Title>Chess Games Alpha Test Installer</Title>
+    <Publisher>Protoze</Publisher>
+    <StartMenuDir>Chess Games</StartMenuDir>
+    <TargetDir>/Applications/playzone/</TargetDir>
+</Installer>
