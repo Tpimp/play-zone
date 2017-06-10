@@ -37,7 +37,7 @@ void CGLogin::attemptRegistration()
 
 void CGLogin::attemptRegisterUser(QString name, QString password, QString email)
 {
-    QCryptographicHash hasher(QCryptographicHash::Sha256);
+    QCryptographicHash hasher(QCryptographicHash::Sha3_256);
     hasher.addData(password.toLocal8Bit());
     mUsername = name;
     mEmail = email;
@@ -101,7 +101,7 @@ void CGLogin::loginToHost()
 
 void CGLogin::login(QString name, QString password)
 {
-    QCryptographicHash hasher(QCryptographicHash::Sha256);
+    QCryptographicHash hasher(QCryptographicHash::Sha3_256);
     hasher.addData(password.toLocal8Bit());
     mUsername = name;
     mHashedPass = hasher.result().toHex();

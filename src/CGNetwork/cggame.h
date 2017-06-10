@@ -12,7 +12,7 @@ class CGGame : public QQuickItem
 public:
     CGGame(QQuickItem* parent = nullptr);
     Q_INVOKABLE void startNewGame(QString opponent, QString country, int elo, bool arewhite, quint64 id);
-    Q_INVOKABLE int  gameID();
+    Q_INVOKABLE quint64  gameID();
     Q_INVOKABLE void makeMove(int from, int to, QString fen, QString promote);
     Q_INVOKABLE void sendDraw(int draw);
     Q_INVOKABLE void sendSync();

@@ -7,6 +7,7 @@ Rectangle {
     id: view
     clip:false
     property var profile:undefined
+    property var profileBoard:undefined
     signal profileLoaded(string name, int elo, string flag);
 
     function setProfile(profile){
@@ -15,6 +16,7 @@ Rectangle {
             profileLoader.active = true;
             flag.source = "image://flags/" +profile.flag
             avatarImg.source = "image://avatars/" +profile.avatar
+            view.profileBoard.setAnimation(profile.getRecentPGN())
         }
     }
     states:[
@@ -87,6 +89,9 @@ Rectangle {
                     avatarImg.source = "image://avatars/" +profile.avatar
                 }
             }
+            onReceivedLastMatch:{
+                view.profileBoard.setAnimation(pgn)
+            }
         }
     }
     /*****************************************************************************
@@ -149,13 +154,18 @@ Rectangle {
         Loader{
             id:lastLoader
             anchors.centerIn: parent
-            sourceComponent:CG_Board{
-                id: lastBoard
-                anchors.centerIn: parent
-                width: 260
-                height:260
-                interactive: false
+            sourceComponent:CG_AnimatedBoard{
+                height:lastMove.height > lastMove.width ? lastMove.height*.8:lastMove.width*.8
+                width: height
+                board.interactive: false
             }
+
+            onLoaded: {
+                if(item){
+                    view.profileBoard = item;
+                }
+            }
+
             active:true
             Behavior on opacity { NumberAnimation{duration:300;}}
         }
@@ -398,6 +408,16 @@ Rectangle {
             }
         }
     }
+
+    Loader{
+        id:gameReviewLoader
+        anchors.fill: parent
+        active:false
+        sourceComponent: CG_GameReview{
+
+        }
+    }
+
     Component.onCompleted: {
         lastLoader.active =false;
         lastLoader.active =true;

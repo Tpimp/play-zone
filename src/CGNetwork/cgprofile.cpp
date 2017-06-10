@@ -108,8 +108,14 @@ bool CGProfile::isValid()
 
 void CGProfile::gotRefresh(QString user, QString recent){
     CG_User::fromData(mUserData,user);
-    QJsonDocument doc = QJsonDocument::fromJson(recent.toLocal8Bit());
-    mRecentGame = doc.object();
+    if(!recent.isEmpty()){
+        QJsonDocument doc = QJsonDocument::fromJson(recent.toLocal8Bit());
+        mRecentGame = doc.object();
+        QJsonObject pgn;
+        doc = QJsonDocument::fromJson(mRecentGame.value("snap").toString().toLocal8Bit());
+        pgn = doc.object();
+        emit receivedLastMatch(mRecentGame,pgn);
+    }
     emit profileSet();
 }
 
@@ -134,12 +140,24 @@ void CGProfile::setColor(bool color)
     mColor = color;
 }
 
+QJsonObject CGProfile::getRecentPGN()
+{
+    QJsonDocument doc = QJsonDocument::fromJson(mRecentGame.value("snap").toString().toLocal8Bit());
+    QJsonObject pgn = doc.object();
+    return pgn;
+}
+
 void CGProfile::setUserProfile(QString &data, QString &last)
 
 {
     CG_User::fromData(mUserData,data);
     if(!last.isEmpty()){
-        qDebug() << "Profiles most recent match: " << last;
+        QJsonDocument doc = QJsonDocument::fromJson(last.toLocal8Bit());
+        mRecentGame = doc.object();
+        QJsonObject pgn;
+        doc = QJsonDocument::fromJson(mRecentGame.value("snap").toString().toLocal8Bit());
+        pgn = doc.object();
+        emit receivedLastMatch(mRecentGame,pgn);
     }
 
     emit avatarChanged(mUserData.avatar);

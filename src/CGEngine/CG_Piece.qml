@@ -28,6 +28,12 @@ Item{
         color: "yellow"
         source: pieceImage
     }
+    Behavior on x {
+        NumberAnimation{duration:200}
+    }
+    Behavior on y {
+        NumberAnimation{duration:200}
+    }
 }
 
 

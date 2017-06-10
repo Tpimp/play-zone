@@ -14,7 +14,7 @@ CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent)
 }
 
 
-int CGGame::gameID()
+quint64 CGGame::gameID()
 {
     return mGameID;
 }

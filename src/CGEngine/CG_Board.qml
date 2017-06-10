@@ -137,6 +137,11 @@ Item {
             return tile.pos;
         }
     }
+    function setBoardFEN(fen){
+        chessEngine.clearBoard();
+        board.game.load(fen);
+        refreshBoard()
+    }
 
     function removePiece(index){
         var tile = tileRepeater.itemAt(index)
@@ -151,13 +156,21 @@ Item {
         var to_tile = tileRepeater.itemAt(move.to);
         var move_obj = board.game.move({from:from_tile.pos,to:to_tile.pos,promotion:move.promote});
         if(move_obj !== null){
-            chessEngine.makeMove(from_tile.index,to_tile.index,move_obj,promote);
+            chessEngine.makeMove(from_tile.index,to_tile.index,move_obj,move.promote);
             board.boardLastMove = move_obj;
             if(board.game.game_over()){
                 chessEngine.handleGameOver(board.game.in_draw(),board.game.in_checkmate(),board.game.in_stalemate(),
                                            board.game.in_threefold_repetition(),board.game.insufficient_material())
             }
         }
+    }
+
+    function makeAnimatedMove(move){
+        var move_obj = board.game.move(move.san)
+        chessEngine.makeAnimatedMove(move, 'q')
+    }
+    function undoLastMove(move){
+        board.game.undo();
     }
 
     // check the move is valid
@@ -178,7 +191,6 @@ Item {
                 if(board.game.game_over()){
                     chessEngine.handleGameOver(board.game.in_draw(),board.game.in_checkmate(),board.game.in_stalemate(),
                                                board.game.in_threefold_repetition(),board.game.insufficient_material())
-
                 }
             }
         }
@@ -230,6 +242,7 @@ Item {
             var to_obj = tileRepeater.itemAt(tile_to);
             var from_obj = tileRepeater.itemAt(tile_from);
             to_obj.piece = from_obj.piece;
+            to_obj.piece.index = tile_to;
             from_obj.piece = null;
             to_obj.piece.x = to_obj.x;
             to_obj.piece.y = to_obj.y;
@@ -271,6 +284,14 @@ Item {
             checkAnimation.start();
 
         }
+//        onRemovePiece:{
+//            var tile_obj = tileRepeater.itemAt(index);
+//            if(tile_obj.piece){
+//                tile_obj.piece.destroy();
+//                tile_obj.piece = null;
+//            }
+//        }
+
         onGameOverCheckmate: {
             var result;
             if(board.game.turn() === 'b'){

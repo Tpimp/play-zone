@@ -16,6 +16,7 @@ public:
     Q_INVOKABLE QString getName(int index);
     Q_INVOKABLE void setCellSize(int size);
     Q_INVOKABLE void isInCheck(int index);
+    Q_INVOKABLE void clearBoard();
     Q_INVOKABLE void handleGameOver(bool is_draw, bool is_checkmate, bool is_stalemate,
                                     bool is_threefold, bool insufficient_material);
 
@@ -33,16 +34,19 @@ signals:
     void gameOverCheckmate();
     void gameOverDraw(int type);
     void gameOverStaleMate();
+    void removePiece(int index);
 
 public slots:
     void resetBoard(QJsonArray json_board);
     bool makeMove(int from, int to, QJsonObject move_data, QString promote);
     void refresh(QJsonObject data, int tile);
+    bool makeAnimatedMove(QJsonObject move_data, QString promote);
 
 
 protected:
     int  mCellSize;
     static const char* const mNames[];
+    int  getIndex(QString cell);
 };
 
 #endif // CGENGINE_H

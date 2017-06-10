@@ -24,6 +24,7 @@ Window {
 
     CGProfile{
         id:profile
+
     }
 
 

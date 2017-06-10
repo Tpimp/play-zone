@@ -45,6 +45,7 @@ public:
     Q_INVOKABLE int elo();
     Q_INVOKABLE int gamesPlayed();
     Q_INVOKABLE qreal winRatio();
+    Q_INVOKABLE QJsonObject getRecentPGN();
 
     // profile attributes
     Q_INVOKABLE QString flag();
@@ -72,7 +73,7 @@ public:
 signals:
     void profileSet();
     void profileChangesSaved(QString data);
-    void receivedLastMatch(QString match);
+    void receivedLastMatch(QJsonObject match, QJsonObject pgn);
     void failedToSaveChanges();
     void countryChanged(QString country);
     void avatarChanged(QString avatar);

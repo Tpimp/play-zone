@@ -38,6 +38,50 @@ QString CGEngine::getName(int index){
     return QString();
 }
 
+void CGEngine::clearBoard(){
+    for(int index(0); index < 64; index++){
+        emit clearTile(index);
+    }
+}
+
+int CGEngine::getIndex(QString cell)
+{
+    if(cell.size()>=2){
+        int col(-1);
+        switch(cell.at(0).toLatin1()){
+            case 'a':
+                col = 0;
+                break;
+            case 'b':
+                col = 1;
+                break;
+            case 'c':
+                col = 2;
+                break;
+            case 'd':
+                col = 3;
+                break;
+            case 'e':
+                col = 4;
+                break;
+            case 'f':
+                col = 5;
+                break;
+            case 'g':
+                col = 6;
+                break;
+            case 'h':
+                col = 7;
+                break;
+        }
+        QString row_str = cell.right(1);
+        int row = 8 - row_str.toInt();
+        row *= 8;
+        return row+ col;
+    }
+    return -1;
+}
+
 void CGEngine::resetBoard(QJsonArray json_board)
 {
     //QJsonDocument  doc = QJsonDocument::fromJson(json_board.toLocal8Bit());
@@ -59,6 +103,7 @@ void CGEngine::resetBoard(QJsonArray json_board)
         }
         else
         {
+            emit clearTile(index);
             index++;
         }
     }
@@ -127,6 +172,71 @@ bool CGEngine::makeMove(int from, int to,QJsonObject move_data, QString promote)
         return true;
     }
     emit pieceMoved(from,to,"");
+    return true;
+}
+
+bool CGEngine::makeAnimatedMove( QJsonObject move_data,QString promote)
+{
+    int fromi = getIndex(move_data.value("from").toString());
+    int toi = getIndex(move_data.value("to").toString());
+    QString flags = move_data["flags"].toString();
+    if(flags.contains('c'))
+    {
+        // there was a capture
+        emit pieceCaptured(toi);
+    }
+    if(flags.contains('e'))
+    {
+        int mod_to = toi %8;
+        int mod_from = fromi %8;
+        if(fromi > toi){
+            if(mod_to > mod_from){
+                emit enPassant(fromi,toi,fromi+1);
+            }
+            else{
+                emit enPassant(fromi,toi,fromi-1);
+            }
+        }
+        else{
+            if(mod_from > mod_to){
+                emit enPassant(fromi,toi,toi+1);
+            }
+            else{
+                emit enPassant(fromi,toi,toi-1);
+            }
+        }
+    }
+    if(flags.contains('q')){ // queen side castle
+        if(fromi > 8)
+        {
+            emit pieceMoved(56,59,"");
+        }
+        else
+        {
+            emit pieceMoved(0,3,"");
+        }
+    }
+    if(flags.contains('k')){ // king side castle
+        if(fromi > 8)
+        {
+            emit pieceMoved(63,61,""); // white
+        }
+        else
+        {
+            emit pieceMoved(7,5,""); // black
+        }
+    }
+    if(flags.contains('b'))
+    {
+        emit pushingPawn(fromi,toi);
+    }
+    if(flags.contains('p'))
+    {
+        emit pieceMoved(fromi,toi,promote);
+        emit promotion(toi,promote);
+        return true;
+    }
+    emit pieceMoved(fromi,toi,"");
     return true;
 }
 
