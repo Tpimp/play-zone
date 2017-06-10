@@ -158,7 +158,7 @@ Rectangle {
                 height:content.height
                 width:content.width*.49
                 icon.source: "qrc:///images/thumb.png"
-                text.text:"Accpet Draw"
+                text.text:"Accept Draw"
                 iconBackground.color: "green"
                 mouse.onClicked:{
                     drawDialog.acceptedDraw();
