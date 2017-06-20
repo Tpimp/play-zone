@@ -11,11 +11,8 @@ Window {
     property var lobbyView:undefined
     property var gameView:undefined
     property string opponent:""
-    property real opelo:0
-    property string opavatar:""
-    property string opflag:""
     property bool playerColor:false
-    property double  gameID:-1
+    property double  serverPing:0
     onVisibilityChanged: {
         if(gameView !== null && gameView !== undefined){
             gameView.resizeBoard();
@@ -23,7 +20,7 @@ Window {
     }
 
     CGProfile{
-        id:profile
+        id:playerProfile
 
     }
 
@@ -95,6 +92,7 @@ Window {
     LoginView{
         anchors.fill: parent
         id:loginView
+        buttonSize: parent.height * .068
         onStartLoading: {
             loadingLoader.item.text.text = text;
             loadingLoader.item.visible = true;
@@ -104,10 +102,13 @@ Window {
             loadingLoader.item.visible = false;
         }
         onLoggedIn: {
-            profile.setName(loginView.username)
-            profile.setPassword(loginView.getPassword())
             loginSound.play();
             app.state = "LOBBY"
+        }
+        onPing:
+        {
+            serverLatency.text = ping;
+            serverPing = ping;
         }
     }
     SoundEffect{
@@ -124,7 +125,7 @@ Window {
                     disconnectSound.play();
                     loginView.disconnectFromHost();
                     app.state = "LOGIN";
-                    loginView.status = "User Logout Successful";
+                    loginView.setStatus("User Logout Successful");
                 }
                 onRequestUpdateProfile:{
                     playerProfile.requestUpdateProfile(loginView.username,loginView.password);
@@ -136,13 +137,26 @@ Window {
                     loadingLoader.item.duration = 650;
                 }
                 onPlayerMatched:{
-
-                    background.opponent = name;
-                    background.opelo = elo;
-                    background.opavatar =  avatar;
-                    background.opflag = country;
-                    background.playerColor = color;
-                    gameID = id;
+                    if(!color){
+                        gameLoader.white.name = playerProfile.name();
+                        gameLoader.white.elo = playerProfile.elo();
+                        gameLoader.white.country = playerProfile.country();
+                        gameLoader.white.avatar = playerProfile.avatar();
+                        gameLoader.black.name = name;
+                        gameLoader.black.elo = elo;
+                        gameLoader.black.avatar = avatar;
+                        gameLoader.black.country = country;
+                    }
+                    else{
+                        gameLoader.black.name = playerProfile.name();
+                        gameLoader.black.elo = playerProfile.elo();
+                        gameLoader.black.country = playerProfile.country();
+                        gameLoader.black.avatar = playerProfile.avatar();
+                        gameLoader.white.name = name;
+                        gameLoader.white.elo = elo;
+                        gameLoader.white.avatar = avatar;
+                        gameLoader.white.country = country;
+                    }
                     app.state = "GAME";
                     loadingLoader.item.text.text = "";
                     loadingLoader.item.visible = false;
@@ -151,7 +165,7 @@ Window {
         onLoaded: {
             if(lobbyLoader.item != undefined){
                 lobbyLoader.item.parent = app
-                lobbyLoader.item.setProfile(profile)
+                lobbyView = lobbyLoader.item;
             }
         }
         active:false
@@ -160,49 +174,59 @@ Window {
     Loader{
         id:gameLoader
         anchors.fill: parent
+        property real gameID:0
+        property var  white:{
+            "name":"",
+            "country":"",
+            "avatar":"",
+            "elo":0
+        }
+        property var  black:{
+            "name":"",
+            "country":"",
+            "avatar":"",
+            "elo":0
+        }
         sourceComponent: GameView{
             visible:true
+            white:gameLoader.white
+            black:gameLoader.black
             onGameOver: {
-                profile.requestUpdateProfile()
                 app.state = "LOBBY";
+            }
+            onReviewGame:{
+                app.state = "LOBBY";
+                lobbyView.setReview(review,"",true);
             }
         }
         onLoaded: {
             if(gameLoader.item != undefined){
                 background.gameView = gameLoader.item
-                gameLoader.item.setProfile(profile)
-                gameLoader.item.startNewGame(opponent,opelo,opflag, playerColor,opavatar,gameID);
+                gameLoader.item.startNewGame(white,black);
+                //gameLoader.item.startNewGame(opponent,opelo,opflag, playerColor,opavatar,gameID);
             }
         }
         active:false
     }
-//    CG_Board{
-//        id:temp
-//        anchors.verticalCenter: parent.verticalCenter
-//        anchors.horizontalCenter: parent.horizontalCenter
-//        height: parent.width*.8
-//        width: height
-//        onPromote: {
-//            temp.interactive = false;
-//            promotePicker.to = to;
-//            promotePicker.from = from;
-//            promotePicker.visible = true;
-//        }
 
-//    }
-//    CG_PromotePicker{
-//        id: promotePicker
-//        anchors.centerIn:temp
-//        height:temp.height
-//        width:temp.width
-//        visible:false
-//        z:200
-//        property var from: null
-//        property var to:null
-//        onPieceChosen: {
-//            promotePicker.visible = false;
-//            temp.makeMove(from,to,piece,true);
-//            temp.interactive = true;
-//        }
-//    }
+    Rectangle{
+        color:"transparent"
+        anchors.top:background.top
+        anchors.horizontalCenter: background.horizontalCenter
+        height:15
+        width:15
+        Text{
+            id:serverLatency
+            visible:false
+            font.pixelSize: 18
+            anchors.fill: parent
+            anchors.leftMargin: 4
+            horizontalAlignment: Text.AlignRight
+            verticalAlignment: Text.AlignVCenter
+        }
+        MouseArea{
+            anchors.fill: parent
+            onDoubleClicked: serverLatency.visible = !serverLatency.visible;
+        }
+    }
 }

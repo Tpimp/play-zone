@@ -12,9 +12,9 @@ Rectangle {
     //property var userProfile:undefined
     signal joinMatchMaking();
     signal playerMatched(string name, int elo, string country, string avatar, bool color,double id)
-    function setProfile(profile){
-        lobby.profile = profile;
-        profileView.setProfile(profile)
+    function setReview(review, fen, start_back){
+        swipeView.currentIndex = 0;
+        profileView.setShowingReview(review,fen,start_back);
     }
 
     CGLobby{
@@ -22,6 +22,7 @@ Rectangle {
         onMatchedWithPlayer:{
             root.playerMatched(opponent.name,opponent.elo,opponent.flag,opponent.avatar, opponent.color,opponent.id);
         }
+
     }
 
     /*****************************************************************************
@@ -46,6 +47,7 @@ Rectangle {
     *******************************************************************************/
 
     SwipeView{
+        id:swipeView
         anchors.fill: parent
         currentIndex: 1
         ProfileView{

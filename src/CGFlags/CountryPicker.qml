@@ -16,7 +16,7 @@ Rectangle {
             id: list
             anchors.fill: parent
             add: Transition {              
-                NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 250 }
+                NumberAnimation { property: "scale"; from: 0; to: 1.0; duration: 150 }
             }
         }
     }
@@ -24,7 +24,7 @@ Rectangle {
         id:creationTimer
         repeat: true
         running:false
-        interval:60
+        interval:30
         onTriggered:{
             if( flagCount< AvailableCountries.length){
                 var instance = flagComponent.createObject(list,{modelData:AvailableCountries[flagCount++]})

@@ -18,6 +18,8 @@ CGEngine::CGEngine(QQuickItem* parent) : QQuickItem(parent)
 }
 
 
+
+
 bool CGEngine::checkValidMove(QJsonArray moves, QString tile)
 {
     if(moves.isEmpty()){
@@ -37,6 +39,7 @@ QString CGEngine::getName(int index){
     }
     return QString();
 }
+
 
 void CGEngine::clearBoard(){
     for(int index(0); index < 64; index++){
@@ -122,24 +125,11 @@ bool CGEngine::makeMove(int from, int to,QJsonObject move_data, QString promote)
     }
     if(flags.contains('e'))
     {
-        int mod_to = to %8;
-        int mod_from = from %8;
-        if(from > to){
-            if(mod_to > mod_from){
-                emit enPassant(from,to,from+1);
-            }
-            else{
-                emit enPassant(from,to,from-1);
-            }
-        }
-        else{
-            if(mod_from > mod_to){
-                emit enPassant(from,to,to+1);
-            }
-            else{
-                emit enPassant(from,to,to-1);
-            }
-        }
+        QString from_s = getName(from);
+        QString to_s = getName(to);
+        QString ep = to_s.at(0);
+        ep.append(from_s.at(1));
+        emit enPassant(from,to,getIndex(ep));
     }
     if(flags.contains('q')){ // queen side castle
         if(from > 8)
@@ -168,11 +158,18 @@ bool CGEngine::makeMove(int from, int to,QJsonObject move_data, QString promote)
     if(flags.contains('p'))
     {
         emit pieceMoved(from,to,promote);
-        emit promotion(to,promote);
+        emit promotion(to,promote,move_data.value("color").toString());
         return true;
     }
     emit pieceMoved(from,to,"");
     return true;
+}
+
+void CGEngine::makeReviewMove(QJsonObject move)
+{
+    // move from chess.js history
+    // { color: 'b', from: 'e7', to: 'e5', flags: 'b', piece: 'p', san: 'e5' }
+    makeMove(getIndex(move.value("from").toString()),getIndex(move.value("to").toString()),move,move.value("promotion").toString());
 }
 
 bool CGEngine::makeAnimatedMove( QJsonObject move_data,QString promote)
@@ -187,24 +184,11 @@ bool CGEngine::makeAnimatedMove( QJsonObject move_data,QString promote)
     }
     if(flags.contains('e'))
     {
-        int mod_to = toi %8;
-        int mod_from = fromi %8;
-        if(fromi > toi){
-            if(mod_to > mod_from){
-                emit enPassant(fromi,toi,fromi+1);
-            }
-            else{
-                emit enPassant(fromi,toi,fromi-1);
-            }
-        }
-        else{
-            if(mod_from > mod_to){
-                emit enPassant(fromi,toi,toi+1);
-            }
-            else{
-                emit enPassant(fromi,toi,toi-1);
-            }
-        }
+        QString from_s = getName(fromi);
+        QString to_s = getName(toi);
+        QString ep = to_s.at(0);
+        ep.append(from_s.at(1));
+        emit enPassant(fromi,toi,getIndex(ep));
     }
     if(flags.contains('q')){ // queen side castle
         if(fromi > 8)
@@ -233,7 +217,7 @@ bool CGEngine::makeAnimatedMove( QJsonObject move_data,QString promote)
     if(flags.contains('p'))
     {
         emit pieceMoved(fromi,toi,promote);
-        emit promotion(toi,promote);
+        emit promotion(toi,promote,move_data.value("color").toString());
         return true;
     }
     emit pieceMoved(fromi,toi,"");
@@ -266,6 +250,47 @@ void CGEngine::handleGameOver(bool is_draw, bool is_checkmate, bool is_stalemate
 }
 
 
+void CGEngine::moveReviewBack()
+{
+    if(mReviewIndex > 0){
+        QJsonObject move = mGameHistory.at(--mReviewIndex).toObject();
+        undoReviewMove(move);
+        emit moveIndexChanged(mReviewIndex);
+    }
+}
+
+void CGEngine::moveReviewFirst()
+{
+    if(mReviewIndex > 0){
+        int distance = mReviewIndex;
+        for(int moves(0); moves < distance; moves++){
+            moveReviewBack();
+        }
+    }
+}
+
+void CGEngine::moveReviewForward()
+{
+    int length = mGameHistory.count();
+    int current = mReviewIndex;
+    if(current < length){
+        QJsonObject move = mGameHistory.at(mReviewIndex).toObject();
+        makeReviewMove(move);
+        mReviewIndex++;
+        emit moveIndexChanged(mReviewIndex);
+    }
+}
+
+void CGEngine::moveReviewLast()
+{
+    int length = mGameHistory.count();
+    int current = mReviewIndex;
+    for(current; current < length; current++){
+        moveReviewForward();
+    }
+
+}
+
 void CGEngine::refresh(QJsonObject data, int tile)
 {
     if(data.isEmpty()){
@@ -278,6 +303,173 @@ void CGEngine::refresh(QJsonObject data, int tile)
 
 void CGEngine::setCellSize(int size){
     mCellSize = size;
+}
+
+
+void CGEngine::startNewGame(QJsonObject white, QJsonObject black, QJsonObject conditions, QJsonObject timedate)
+{
+
+}
+
+
+void CGEngine::startReviewGame(QJsonArray history, QString final_fen,  bool start_last)
+{
+    mReviewIndex = 0;
+    mGameHistory = history;
+    // History object comes from chess.js pgn function
+    // -> [{ color: 'w', from: 'e2', to: 'e4', flags: 'b', piece: 'p', san: 'e4' },
+    //     { color: 'b', from: 'e7', to: 'e5', flags: 'b', piece: 'p', san: 'e5' },
+    //     { color: 'w', from: 'f2', to: 'f4', flags: 'b', piece: 'p', san: 'f4' },
+    //     { color: 'b', from: 'e5', to: 'f4', flags: 'c', piece: 'p', captured: 'p', san: 'exf4' }]
+
+    if(final_fen.isEmpty() && start_last){
+        // must iterate throught the moves
+        setBoardToFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        //moveReviewLast();
+    }
+    else if(!final_fen.isEmpty()){
+        // set board to final fen and set index to final move
+        setBoardToFEN(final_fen);
+        mReviewIndex = mGameHistory.count();
+        emit reachedBack();
+    }
+    else{
+        setBoardToFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        emit reachedFront();
+    }
+    emit moveIndexChanged(mReviewIndex);
+}
+
+void CGEngine::setBoardToFEN(QString fen){
+    bool whites_turn(true);
+    QString castles;
+    QString enPassant_move;
+    QString clock_str;
+    int     halfmove_clock;
+    int     move_index;
+    int index(0);
+    int tile_index(0);
+    QChar tile('2');
+    while(!tile.isSpace()){ // parse position data
+        tile = fen.at(index);
+        if(tile.isDigit()){
+            QString d_str(tile);
+            int digit = d_str.toInt();
+            if(digit > 0 && digit < 9){
+                for(int i(0); i < digit; i++){
+                    emit clearTile(tile_index++);
+                }
+            }
+        }
+        else if(tile.isLetter()){ // found a piece
+            QString type(tile.toLower());
+            QString color;
+            color = tile.isLower() ? 'b':'w';
+            emit pieceCreated(type,color,tile_index++);
+        }
+        index++;
+    }
+    // parse move, castle items,enpassant, half clock, current move
+    QChar move = fen.at(++index);
+    if(move.toLatin1() == 'b'){
+        whites_turn = false;
+    }
+    emit playersMove(whites_turn);
+    index +=2; // move to castle
+    tile = fen.at(index); // front of castle
+    while(!tile.isSpace()){
+        castles.append(tile);
+        tile = fen.at(++index);
+    }
+    index += 1;
+    tile = fen.at(index); // enpassant
+    while(!tile.isSpace()){
+        enPassant_move.append(tile);
+        tile = fen.at(++index);
+    }
+    if(enPassant_move.compare("-") != 0){
+        enPassantAvailable(enPassant_move);
+    }
+    index += 1;
+    tile = fen.at(index); // halfmove
+    char c = tile.toLatin1();
+    halfmove_clock = atoi(&c);
+    emit halfMoveChanged(halfmove_clock);
+    index += 2; // move to move clock
+    while(index < fen.length()){
+        tile = fen.at(index++);
+        clock_str.append(tile);
+    }
+    if(!clock_str.isEmpty()){
+        move_index = clock_str.toInt();
+        emit plyCountChanged(move_index);
+    }
+}
+
+void CGEngine::undoReviewMove(QJsonObject move)
+{
+    // chess.js move
+    //     { color: 'b', from: 'e7', to: 'e5', flags: 'b', piece: 'p', san: 'e5' }
+    QString from_s = move.value("from").toString();
+    QString to_s = move.value("to").toString();
+    QString flags = move.value("flags").toString();
+    QString rank_strf;
+    int to = getIndex(to_s);
+    int from = getIndex(from_s);
+    rank_strf.append(from_s.at(1));
+    int f_rank = rank_strf.toInt();
+    QString color = move.value("color").toString();
+    QString op_color;
+    if(color.contains("w")){
+        op_color = "b";
+    }
+    else{
+        op_color = "w";
+    }
+
+    if(flags.contains('e'))  // reverse enPassant
+    {
+        QChar piece = move.value("captured").toString().at(0);
+        QString type;
+        type.append(piece.toLower());
+        QString c_rank= to_s.at(0);
+        c_rank.append(from_s.at(1));
+        emit pieceCreated(type,op_color,getIndex(c_rank));
+    }
+    if(flags.contains('q')){ // queen side castle
+        if( f_rank == 4)
+        {
+            emit pieceMoved(59,56,"");
+        }
+        else
+        {
+            emit pieceMoved(3,0,"");
+        }
+    }
+    if(flags.contains('k')){ // king side castle
+        if(f_rank == 1)
+        {
+            emit pieceMoved(61,63,""); // white
+        }
+        else
+        {
+            emit pieceMoved(5,7,""); // black
+        }
+    }
+    if(flags.contains('p'))
+    {
+        emit removePiece(to);
+        emit pieceCreated("p",color,to);
+    }
+    emit pieceMoved(to,from,"");
+    if(flags.contains("c"))
+    {
+        // there was a capture
+        QChar piece = move.value("captured").toString().at(0);
+        QString type;
+        type.append(piece);
+        emit pieceCreated(type,op_color,to);
+    }
 }
 
 CGEngine::~CGEngine()

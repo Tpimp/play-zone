@@ -3,7 +3,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent)
+CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent), mWhiteClock(0), mBlackClock(0)
 {
     mServer = CGServer::globalServer();
     //connect(mServer, &CGServer::gameMessageReceived, this, &CGGame::processGameMessage);
@@ -11,15 +11,118 @@ CGGame::CGGame(QQuickItem * parent) : QQuickItem(parent)
     connect(mServer, &CGServer::gameSynchronized, this, &CGGame::gameSynchronized);
     connect(mServer, &CGServer::gameFinished, this, &CGGame::gameFinished);
     connect(mServer, &CGServer::recievedDrawResponse, this, &CGGame::drawResponse);
+    connect(&mUpdateTimer, &QTimer::timeout, this, &CGGame::updatePlayerClock);
+    mUpdateTimer.setInterval(90);
+    mUpdateTimer.setTimerType(Qt::PreciseTimer);
+    mUpdateTimer.setSingleShot(false);
 }
 
-
-quint64 CGGame::gameID()
+int CGGame::adjustPlayerTimer(bool color)
 {
-    return mGameID;
+    quint64 elapsed = mTurnTimer.elapsed();
+    QString time;
+    quint64 starttime;
+    if(color){
+        if(elapsed >= mWhiteClock){ // timeout
+            starttime = 0;
+            emit syncPlayerClock(true,"00:00");
+            emit playerTimerExpired(true);
+            return elapsed;
+        }
+        starttime = (mWhiteClock-elapsed);
+    }
+    else{
+        if(elapsed >= mBlackClock){ // timeout
+            starttime = 0;
+            emit syncPlayerClock(false,"00:00");
+            emit playerTimerExpired(false);
+            return elapsed;
+        }
+        starttime = (mBlackClock-elapsed);
+    }
+    quint64 minutes = (starttime/60000);
+    quint64 seconds = ((starttime-(60000*minutes))/1000);
+    QTextStream stream(&time);
+    if(minutes < 10){
+        stream << "0";
+    }
+    stream << minutes << ":";
+    if(seconds < 10){
+        stream << "0";
+    }
+    stream << seconds;// << "." << millis;
+    emit syncPlayerClock(color,time);
+    return elapsed;
 }
 
-void CGGame::makeMove(int from, int to, QString fen, QString promote)
+int CGGame::playerTimeElapsed()
+{
+    return mTurnTimer.elapsed();
+}
+
+QString CGGame::blacksTime()
+{
+    quint64 minutes = (mBlackClock/60000);
+    quint64 seconds = ((mBlackClock-(60000*minutes))/1000);
+    //quint64 millis = (mBlackClock - ((60000*minutes) + (1000*seconds)));
+    QString out;
+    QTextStream stream(&out);
+    if(minutes < 10){
+        stream << "0";
+    }
+    stream << minutes << ":";
+    if(seconds < 10){
+        stream << "0";
+    }
+    stream << seconds;// << "." << millis;
+    return out;
+}
+
+void CGGame::calculatePlayerClock(bool color, quint64 time)
+{
+    quint64 minutes = (time/60000);
+    quint64 seconds = ((time - (60000*minutes)) /1000);
+    //quint64 millis = (time - ((60000*minutes) + (1000*seconds)));
+    QString out;
+    QTextStream stream(&out);
+    if(minutes < 10){
+        stream << "0";
+    }
+    stream << minutes << ":";
+    if(seconds < 10){
+        stream << "0";
+    }
+    stream << seconds;// << "." << millis;
+    if(color){
+        mWhiteClock = time;
+    }
+    else{
+        mBlackClock = time;
+    }
+    emit syncPlayerClock(color,out);
+}
+
+void CGGame::calculateSyncClock(quint64 time)
+{
+    mWhiteClock = time;
+    mBlackClock = time;
+    quint64 minutes = (time/60000);
+    quint64 seconds = ((time - (60000*minutes)) /1000);
+  //  quint64 millis = (time - ((60000*minutes) + (1000*seconds)));
+    QString out;
+    QTextStream stream(&out);
+    if(minutes < 10){
+        stream << "0";
+    }
+    stream << minutes << ":";
+    if(seconds < 10){
+        stream << "0";
+    }
+    stream << seconds;// << "." << millis;
+    emit syncClock(out);
+}
+
+void CGGame::makeMove(int from, int to, QString fen, QString promote, int elapsed, double latency)
 {
     QJsonObject obj;
     QJsonArray array;
@@ -28,10 +131,12 @@ void CGGame::makeMove(int from, int to, QString fen, QString promote)
     array.append(to);
     array.append(fen);
     array.append(promote);
+    array.append(elapsed);
+    array.append(latency);
     obj["P"] = array;
     QJsonDocument doc;
     doc.setObject(obj);
-    mServer->writeMessage( doc.toBinaryData());
+    mServer->writeMessage(doc.toBinaryData());
 }
 
 
@@ -61,31 +166,71 @@ void CGGame::sendResult(int result, QJsonObject move, QString fen, QString game)
     mServer->writeMessage( doc.toBinaryData());
 }
 
-void CGGame::sendSync()
+void CGGame::sendSync(double latency)
 {
     QJsonObject obj;
     obj["T"] = SEND_SYNC;
-    obj["P"] = QJsonValue();
+    QJsonArray array;
+    array.append(latency);
+    obj["P"] = array;
     QJsonDocument doc;
     doc.setObject(obj);
     mServer->writeMessage( doc.toBinaryData());
 }
 
-void CGGame::setGameID(quint64 id)
+int CGGame::stopPlayerTimer(bool color)
 {
-    if(mGameID != id){
-        mGameID = id;
-        emit gameIDChanged(id);
+    mUpdateTimer.stop();
+    quint64 elapsed = mTurnTimer.elapsed();
+    QString time;
+    if(color){
+        if(elapsed >= mWhiteClock){ // timeout
+            mWhiteClock = 0;
+            emit syncPlayerClock(true,"00:00");
+            emit playerTimerExpired(true);
+            return elapsed;
+        }
+        mWhiteClock -= elapsed;
+        time = whitesTime();
     }
+    else{
+        if(elapsed >= mBlackClock){ // timeout
+            mBlackClock = 0;
+            emit syncPlayerClock(false,"00:00");
+            emit playerTimerExpired(false);
+            return elapsed;
+        }
+        mBlackClock -= elapsed;
+        time = blacksTime();
+    }
+    emit syncPlayerClock(color,time);
+    return elapsed;
 }
 
-void CGGame::startNewGame(QString opponent, QString country, int elo, bool arewhite, quint64 id)
+void CGGame::startPlayerTimer()
 {
-    mOpponentElo = elo;
-    mOpponent = opponent;
-    mOpponentCountry = country;
-    mGameID = id;
+    mUpdateTimer.stop();
+    mTurnTimer.start();
+    mUpdateTimer.start();
 }
+
+QString CGGame::whitesTime(){
+    quint64 minutes = (mWhiteClock/60000);
+    quint64 seconds = ((mWhiteClock- (60000*minutes)) /1000);
+   // quint64 millis = (mWhiteClock - ((60000*minutes) + (1000*seconds)));
+    QString out;
+    QTextStream stream(&out);
+    if(minutes < 10){
+        stream << "0";
+    }
+    stream << minutes << ":";
+    if(seconds < 10){
+        stream << "0";
+    }
+    stream << seconds;// << "." << millis;
+    return out;
+}
+
 
 
 

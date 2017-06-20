@@ -6,7 +6,6 @@ CGLobby::CGLobby(QQuickItem *parent):
 {
     mServer = CGServer::globalServer();
     connect(mServer,&CGServer::lobbyFoundMatch, this, &CGLobby::matchedWithPlayer);
-    //connect(mServer,&CGServer::userProfileData, this, &CGLobby::);
 }
 
 

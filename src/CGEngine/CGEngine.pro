@@ -18,13 +18,15 @@ SOURCES += \
     cgengine_plugin.cpp \
     cgtimer.cpp \
     pieceprovider.cpp \
-    cgengine.cpp
+    cgengine.cpp \
+    pgnj.cpp
 
 HEADERS += \
     cgengine_plugin.h \
     cgtimer.h \
     pieceprovider.h \
-    cgengine.h
+    cgengine.h \
+    pgnj.h
 
 DISTFILES = qmldir
 

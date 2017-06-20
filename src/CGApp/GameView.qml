@@ -4,49 +4,45 @@ import CGEngine 1.0
 import QtMultimedia 5.8
 Rectangle {
     id: topRect
-    property var playerProfile:undefined
+    property var white:undefined
+    property var black:undefined
     property var gameBoard:undefined
+    property bool playerTurn:true
     signal gameOver();
     function resizeBoard(){
         if(boardLoader.status == Loader.Ready && boardLoader.active){
             gameBoard.resizeBoard();
         }
     }
+    signal reviewGame(var review, string fen)
 
-    function startNewGame(name, elo, country, color, avatar,id)
+    function startNewGame(white,black)
     {
         topRect.state = "MATCHED";
-        playerProfile.setColor(!color);
-        if(!color){
-            whitePlayer.banner.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,true);
-            blackPlayer.banner.setBanner(name,elo,country,"image://avatars/"+avatar, false);
+        if(playerProfile.name() == white.name){ // local player is white
             blackPlayer.setBack(drawComponent);
             whitePlayer.setBack(playerComponent);
         }
         else{
-            blackPlayer.banner.setBanner(playerProfile.name,playerProfile.elo,playerProfile.flag,"image://avatars/"+playerProfile.avatar,false);
-            whitePlayer.banner.setBanner(name,elo,country,"image://avatars/"+avatar,true);
             whitePlayer.setBack(drawComponent);
             blackPlayer.setBack(playerComponent);
         }
-        remoteGame.startNewGame(name,country,elo,!color,id);
-        remoteGame.sendSync();
+        whitePlayer.banner.setBanner(white.name,white.elo,white.country,"image://avatars/"+white.avatar,true);
+        blackPlayer.banner.setBanner(black.name,black.elo,black.country,"image://avatars/"+black.avatar, false);
+        remoteGame.sendSync(serverPing);
     }
     function resetBoard(){
         boardLoader.active = false;
         boardLoader.active = true;
     }
 
-    function setProfile(player)
-    {
-        topRect.playerProfile = player;
-    }
     CGGame{
         id:remoteGame
         onOpponentMove: {
             gameBoard.makeRemoteMove(move);
             var lastmove = gameBoard.getLastMove()
-            if(playerProfile.color){
+            if(white.name == playerProfile.name()){ // if local player is white
+                remoteGame.calculatePlayerClock(false,move.time);
                 if(lastmove){
                     blackPlayer.setMove(lastmove)
                 }
@@ -55,6 +51,7 @@ Rectangle {
                 }
             }
             else{
+                remoteGame.calculatePlayerClock(true,move.time);
                 if(lastmove){
                     whitePlayer.setMove(gameBoard.getLastMove())
                 }
@@ -63,16 +60,75 @@ Rectangle {
                     blackPlayer.setMove("")
                 }
             }
+            remoteGame.startPlayerTimer();
         }
+        onSyncClock: {
+            whitePlayer.banner.clock.text = time;
+            blackPlayer.banner.clock.text = time;
+        }
+        onSyncPlayerClock: {
+            if(color){
+                whitePlayer.banner.clock.text = time;
+            }
+            else{
+                blackPlayer.banner.clock.text = time;
+            }
+        }
+        onUpdatePlayerClock: {
+            remoteGame.adjustPlayerTimer(playerTurn);
+        }
+
         onGameSynchronized: {
-            syncTimer.count =1;
-            syncTimer.interval = 350;
-            syncTimer.start()
+            switch(state){
+                case 0:
+                    remoteGame.calculateSyncClock(time);
+                    syncTimer.count =1;
+                    syncTimer.interval = 50 - serverPing;
+                    if(syncTimer.interval <= 0){
+                        syncTimer.interval = 1;
+                    }
+                    syncTimer.start()
+                    break;
+                case 1:
+                    if(white.name == playerProfile.name()){
+                        remoteGame.calculatePlayerClock(true,time);
+                    }
+                    else
+                    {
+                        remoteGame.calculatePlayerClock(false,time);
+                    }
+                    break;
+                default: break;
+            }
         }
+        onPlayerTimerExpired: {
+            if(color)
+            {
+                remoteGame.stopPlayerTimer(true);
+                if(white.name == playerProfile.name()){
+                    remoteGame.sendResult(-1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                }
+                else
+                {
+                    remoteGame.sendResult(1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                }
+            }
+            else{
+                remoteGame.stopPlayerTimer(false);
+                if(white.name == playerProfile.name()){
+                    remoteGame.sendResult(1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                }
+                else
+                {
+                    remoteGame.sendResult(-1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                }
+            }
+        }
+
         onDrawResponse: {
             switch(response){
                 case 0:  // got draw offer
-                    if(playerProfile.color){
+                    if(white.name == playerProfile.name()){ // if local player is white
                         blackPlayer.back.setAsked();
                         blackPlayer.showBack = true;
                         blackPlayer.stopReset();
@@ -91,7 +147,7 @@ Rectangle {
                     gameBoard.sendDrawAccept();
                     break;
                 case 2: // got decline
-                    if(playerProfile.color){
+                    if(playerProfile.name() == white.name){
                         blackPlayer.reset()
                         blackPlayer.back.resetDraw();
                     }
@@ -101,7 +157,7 @@ Rectangle {
                     }
                     break;
                 default: // reset
-                    if(playerProfile.color){
+                    if(playerProfile.name() == white.name){
                         blackPlayer.reset()
                         blackPlayer.back.resetDraw();
                     }
@@ -114,65 +170,8 @@ Rectangle {
         }
 
         onGameFinished: {
-            var white_elo = parseInt(whitePlayer.front.elo)
-            var black_elo = parseInt(blackPlayer.front.elo)
+            remoteGame.stopPlayerTimer(playerColor);
 
-            switch(result){
-            case -2:
-                if(playerProfile.color){
-                    white_elo -= 5;
-                    black_elo +=5;
-                    topRect.state = "RESIGNW";
-                }
-                else{
-                    black_elo -=5;
-                    white_elo += 5;
-                    topRect.state = "RESIGNB";
-                }
-                resignSound.play();
-                break;
-            case -1: if(playerProfile.color){
-                    white_elo -= 5;
-                    black_elo += 5;
-                    topRect.state = "POSTBW";
-                }
-                else{
-                    white_elo += 5;
-                    black_elo -=5;
-                    topRect.state = "POSTWW";
-                }
-                break;
-            case 0: topRect.state = "POSTDW";
-                    staleSound.play();
-                    break;
-            case 1: if(playerProfile.color){
-                    white_elo += 5;
-                    black_elo -=5;
-                    topRect.state = "POSTWW";
-                }
-                else{
-                    white_elo -= 5;
-                    black_elo +=5;
-                    topRect.state = "POSTBW";
-                }
-                wonSound.play()
-                break;
-            case 2: if(playerProfile.color){
-                    white_elo += 5;
-                    black_elo -=5;
-                    topRect.state = "RESIGNB";
-                }
-                else{
-                    white_elo -= 5;
-                    black_elo +=5;
-                    topRect.state = "RESIGNW";
-                }
-                wonSound.play()
-                break;
-            default: break;
-            }
-            whitePlayer.front.elo = white_elo;
-            blackPlayer.front.elo = black_elo;
         }
     }
     Timer{
@@ -185,6 +184,7 @@ Rectangle {
             if(syncTimer.count <=0){
                 syncTimer.stop();
                 topRect.state = "GAME"
+                remoteGame.startPlayerTimer();
             }
             else{
                 count -=1;
@@ -231,7 +231,7 @@ Rectangle {
         State{
             name:"POST"
             extend:""
-            PropertyChanges {target:boardLoader; active:false}
+            PropertyChanges {target:boardLoader; active:true; visible:false}
             PropertyChanges {target:matchedImage; visible:false;}
             PropertyChanges {target:boundingRect; visible:true;}
             PropertyChanges {
@@ -255,6 +255,11 @@ Rectangle {
                 anchors.bottomMargin:72
                 horizontalAlignment:Text.AlignHCenter
                 verticalAlignment:Text.AlignVCenter
+            }
+            PropertyChanges{
+                target:reviewButton
+                enabled:true
+                visible:true
             }
             PropertyChanges{
                 target:leaveButton
@@ -360,13 +365,27 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
         }
         CG_DarkButton{
-            id:leaveButton
+            id:reviewButton
             anchors.left:parent.left
+            anchors.bottom:parent.bottom
+            height:64
+            width:parent.width*.43
+            anchors.bottomMargin: 6
+            anchors.leftMargin: 10
+            visible:false
+            enabled:false
+            text.text:"Review"
+            mouse.onClicked: {
+                topRect.reviewGame(gameBoard.getHistory(),gameBoard.getFEN())
+            }
+        }
+        CG_DarkButton{
+            id:leaveButton
             anchors.right:parent.right
             anchors.bottom:parent.bottom
             height:64
+            width:parent.width*.43
             anchors.bottomMargin: 6
-            anchors.leftMargin: 10
             anchors.rightMargin: 10
             visible:false
             enabled:false
@@ -388,13 +407,15 @@ Rectangle {
             onSendMove: {
                 moveSound.play();
                 var lastmove = gameBoard.getLastMove()
-                if(playerProfile.color){
+                var color = false;
+                if(playerProfile.name() == white.name){
                     if(lastmove){
                         whitePlayer.setMove(gameBoard.getLastMove())
                     }
                     else{
                         blackPlayer.setMove("")
                     }
+                    color = true;
                 }
                 else{
                     if(lastmove){
@@ -405,8 +426,8 @@ Rectangle {
                         blackPlayer.setMove("")
                     }
                 }
-                remoteGame.makeMove(from,to,fen,promote);
-                if(playerProfile.color){
+                remoteGame.makeMove(from,to,fen,promote,remoteGame.stopPlayerTimer(color), serverPing);
+                if(playerProfile.name() == white.name){
                     if(blackPlayer.showBack){
                         blackPlayer.showBack = false;
                         blackPlayer.back.resetDraw();
@@ -420,11 +441,13 @@ Rectangle {
                         remoteGame.sendDraw(2);
                     }
                 }
+                remoteGame.startPlayerTimer();
             }
             onWhitesTurn: {
                 whitePlayer.banner.setTurn(true);
                 blackPlayer.banner.setTurn(false);
-                if(playerProfile.color){
+                playerTurn = true;
+                if(playerProfile.name() == white.name){
                     interactive = true;
                 }
                 else{
@@ -434,7 +457,8 @@ Rectangle {
             onBlacksTurn: {
                 blackPlayer.banner.setTurn(true);
                 whitePlayer.banner.setTurn(false);
-                if(!playerProfile.color){
+                playerTurn = false;
+                if(playerProfile.name() != white.name){
                     interactive = true;
                 }
                 else{
@@ -449,11 +473,12 @@ Rectangle {
             }
 
             onGameOver: {
+                remoteGame.stopPlayerTimer(playerTurn);
                 // do something to notify user game ended
                 remoteGame.sendResult(result,move,fen,game);
             }
             onPromote:{
-                if(blackPlayer.getTurn()){
+                if(white.name == playerProfile.name()){
                     promotePicker.playerColor = true;
                 }
                 else{
@@ -467,7 +492,7 @@ Rectangle {
 
             onFinishedLoading: {
                 var cdate = new Date();
-                if(playerProfile.color)
+                if(playerProfile.name() == white.name)
                 {
                     topRect.gameBoard.interactive = true;
                 }
@@ -537,7 +562,7 @@ Rectangle {
             onRequestResign:{gameBoard.resign(); setWaitResign();parent.stopReset(); resignSound.play();}
             onRequestDraw:{drawSound.play(); setWaitDraw(); parent.stopReset(); remoteGame.sendDraw(0); }
             onAcceptedDraw:{
-                if(playerProfile.color){
+                if(playerProfile.name() == white.name){
                     blackPlayer.reset()
                     blackPlayer.back.resetDraw();
                 }
@@ -550,7 +575,7 @@ Rectangle {
                 gameBoard.sendDrawAccept();
             }
             onDeclinedDraw:{
-                if(playerProfile.color){
+                if(playerProfile.name() == white.name){
                     blackPlayer.reset()
                     blackPlayer.back.resetDraw();
                 }
@@ -610,6 +635,7 @@ Rectangle {
         loops:0
 
     }
+
 }
 
 

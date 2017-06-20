@@ -9,6 +9,6 @@
         <file>ProfileView.qml</file>
         <file>MatchView.qml</file>
         <file>ChatView.qml</file>
-        <file>CG_GameReview.qml</file>
+        <file>GameReview.qml</file>
     </qresource>
 </RCC>

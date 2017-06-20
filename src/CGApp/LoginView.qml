@@ -7,41 +7,23 @@ Rectangle{
     id:loginView
     signal startLoading(string text, real duration, bool back);
     signal stopLoading();
-    signal loggedIn();
-    function disconnectFromHost(){
-        loginController.disconnectFromServer()
-    }
-
-    property string connectionState:""
-    property alias status:statusText.text
-    property string username:""
-    property string password:""
-    property string email:""
-    property var form: undefined
-
+    signal ping(real ping)
+//    //property alias status:statusText.text
+    property real  buttonSize:0.0
+    signal loggedIn()
     function loginToCG(user,password){
-        loginView.username = user;
-        loginView.password = password;
-        loginView.connectionState = "LOG";
         loginView.state = "LOGIN";
+        console.log("Trying to log in")
         loginController.login(user,password);
     }
     function registerUser(user, password, email){
-        loginView.connectionState = "REG";
-        loginController.attemptRegisterUser(user,password,email);
+        loginController.attemptRegisterUser(user,password,email, "");
     }
-
-    function setRegisterForm()
-    {
-        loginView.form.email.height = loginView.form.height/6.1;
-        loginView.form.confirmPassword.height = loginView.form.height/6.1;
-        loginView.form.socialButtons.height = 0;
-        loginView.form.socialButtons.visible = 0;
-        loginView.form.login.visible = 0;
-        loginView.form.registerText.text = ""
+    function disconnectFromHost(){
+        loginController.disconnectFromServer()
     }
-    function getPassword(){
-        return loginController.getPassword();
+    function setStatus(text){
+        statusText.text = text;
     }
 
     /************************************************
@@ -52,30 +34,62 @@ Rectangle{
     Connections{
         target: CGUpdater // comes from the C++ application loader
         onUpdateAvailable: loginView.state = "AVAILABLE";
-        onReady:{loginView.state = "READY";}
+        onReady:{
+            console.log("No Updates Found")
+            loginView.state = "READY";}
+    }
+
+    /************************************************
+    * This section defines the Connections to
+    * "CGLogin"
+    *
+    ***********************************************/
+
+    CGLogin{
+        id:loginController
+        onDisconnectedFromServer: {
+            loginView.state = "READY"
+            statusText.text = "User Logout Successful"
+            tf_password.textColor = "black";
+            tf_confirm_password.text = "";
+        }
+        onUserCredentialsDenied: {
+            statusText.text = "Playzone member not found.\nAttempting to login to chessgames.com"
+            webController.requestCGLoginVerify(tf_username.text,tf_password.text);
+        }
+        onUserLoggedIn: {
+            loginView.stopLoading();
+            loginView.state = "READY"
+            loginView.loggedIn();
+        }
+        onUserRegistered:{
+            loginController.login(tf_username.text,tf_password.text);
+        }
+        onUserDeniedRegister: {
+            loginView.state = "READY"
+            loginController.disconnectFromServer();
+            statusText.text = reason
+        }
+        onCurrentPing: loginView.ping(ping)
     }
 
     states:[
         State{
             name:"AVAILABLE"
-            PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
+
             PropertyChanges{target:statusText;text:"Update Available"}
             PropertyChanges{target:logoAnimation;loops:Animation.Infinite;running:true;}
             PropertyChanges{target:pauseAnimation;duration:4200}
-            PropertyChanges{target:formLoader; sourceComponent:availableContainer}
             StateChangeScript{script:CGUpdater.beginUpdateProcess();}
         },
         State{
             name:"DOWNLOADING"
-            PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
             PropertyChanges{target:statusText;text:"Downloading Updates..."}
             PropertyChanges{target:logoAnimation;loops:Animation.Infinite;running:true;}
             PropertyChanges{target:pauseAnimation;duration:3500}
-            PropertyChanges{target:formLoader;sourceComponent:downloadContainer; active:true}
         },
         State{
             name:"UPDATING"
-            PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
             PropertyChanges{target:statusText;text:"Installing Updates..."}
             PropertyChanges{target:logoAnimation;loops:Animation.Infinite;running:true;}
             PropertyChanges{target:pauseAnimation;duration:2200}
@@ -83,41 +97,47 @@ Rectangle{
         },
         State{
             name:"WAITING"
-            PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
             PropertyChanges{target:statusText;text:"Update Finished!"}
             PropertyChanges{target:logoAnimation;running:false;}
-            PropertyChanges{target:formLoader; sourceComponent:waitingContainer; active:true}
         },
         State{
             name:"READY"
-            extend:""
-            PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
             StateChangeScript{script:loginView.stopLoading();}
             PropertyChanges{target:statusText;text:""}
             PropertyChanges{target:logoAnimation;loops:Animation.Infinite;running:true;}
             PropertyChanges{target:pauseAnimation;duration:10000}
-            PropertyChanges{target:formLoader; sourceComponent:readyContainer; active:true}
+            PropertyChanges{target:tf_username; height:buttonSize; KeyNavigation.tab: tf_password}
+            PropertyChanges{target:tf_password; height:buttonSize; KeyNavigation.tab: tf_username}
+            PropertyChanges{target:loginButton; height:buttonSize}
+            PropertyChanges{target:updateButton; visible:false}
+            PropertyChanges{target:socialRow; height:buttonSize; visible:true}
+            PropertyChanges{target:registerButton; height:buttonSize}
+            PropertyChanges {target: form;scale:1}
         },
         State{
             name:"REGISTER"
-            PropertyChanges{target:formLoader; sourceComponent:readyContainer; active:true}
             StateChangeScript{script:loginView.stopLoading();}
             PropertyChanges{target:statusText;text:""}
+            PropertyChanges{target: backArrow; visible:true}
             PropertyChanges{target:logoAnimation;loops:Animation.Infinite;running:true;}
             PropertyChanges{target:pauseAnimation;duration:10000}
-            StateChangeScript{script: loginView.setRegisterForm();}
+            PropertyChanges{target:tf_username; height:buttonSize; KeyNavigation.tab: tf_email}
+            PropertyChanges{target:tf_password; height:buttonSize; KeyNavigation.tab: tf_confirm_password}
+            PropertyChanges{target:registerButton; height:buttonSize}
+            PropertyChanges{target:updateButton; visible:false}
+            PropertyChanges{target:tf_confirm_password; height:buttonSize; KeyNavigation.tab: tf_username}
+            PropertyChanges{target:tf_email; height:buttonSize; KeyNavigation.tab: tf_password}
+            PropertyChanges {target: form;scale:1}
         },
         State{
             name:"LOGIN"
-            PropertyChanges{target:formLoader; active:false; sourceComponent:undefined}
-            PropertyChanges{target:formLoader; sourceComponent:loginContainer; active:true}
+            PropertyChanges {target:statusText; text:""}
             StateChangeScript{script:loginView.startLoading("Connecting to Chessgames Server...",850,false);}
-            PropertyChanges{target:statusText;text:""}
+            PropertyChanges {target:cancelButton; height:buttonSize; text.visible: true }
             PropertyChanges{target:logoAnimation;running:false;}
         }
 
     ]
-
 
     CGWebConnection{
         id: webController
@@ -127,51 +147,16 @@ Rectangle{
         }
         onUserCGDeniedPasswordError: {
             loginView.state = "READY"
-            statusText.text = "User Credentials Were Denied"
+            statusText.text = "User login was Denied"
         }
 
         onUserCGVerified: {
-            if(loginView.connectionState == "LOG"){
-                //playerProfile.avatar = avatar;
-                loginView.email = email;
-                loginController.attemptRegisterUser(loginView.username,loginView.password,email);
-            }
+            //playerProfile.avatar = avatar;
+            loginController.attemptRegisterUser(tf_username.text,tf_password.text,email,"");
+
         }
     }
 
-
-    /************************************************
-    * This section defines the Connections to
-    * "CGLogin"
-    *
-    ***********************************************/
-    CGLogin{
-        id:loginController
-
-        onDisconnectedFromServer: {
-            loginView.state = "READY"
-            statusText.text = "User Logout Successful"
-        }
-        onUserCredentialsDenied: {
-            webController.requestCGLoginVerify(loginView.username,loginView.password);
-        }
-        onUserLoggedIn: {
-            loginView.stopLoading();
-            loginView.state = "READY"
-            loginView.loggedIn();
-        }
-        onUserRegistered:{
-            loginController.login(loginView.username,loginView.password);
-        }
-        onUserDeniedRegister: {
-            loginView.state = "READY"
-            statusText.text = reason
-        }
-
-        Component.onCompleted: {
-            loginController.setServerAddress(APP_IP,APP_PORT)
-        }
-    }
 
 
     /*****************************************************************************
@@ -263,325 +248,246 @@ Rectangle{
             }
         }
     }
-    Item{
-        id:buttonContainer
+
+    Column{
+        id:form
+        spacing:8
         anchors.bottom: parent.bottom
-        anchors.left:parent.left
-        anchors.right:parent.right
-        anchors.top:statusText.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        height: parent.height - statusText.y
         anchors.topMargin:6
-        anchors.margins: 2
-        Loader{
-            id:formLoader
-            anchors.centerIn: parent
-            onLoaded: {
-                if(formLoader.item != undefined){
-                    formLoader.item.parent = buttonContainer
-                    loginView.form = formLoader.item;
-                    formLoader.item.scale = 1;
+        width:parent.width *.9
+
+        property alias username:tf_username
+        property alias password:tf_password
+        property alias email:tf_email
+        property alias confirmPassword:tf_confirm_password
+        property alias login:loginButton
+        property alias register:registerButton
+        property alias facebook:fbButton
+        property alias google:googleButton
+        property alias socialButtons:socialRow
+        //property alias registerText:registerText
+        // For LOGIN and REGISTER
+        CG_TextField{
+            id:tf_username
+            placeholderText:"Chessgames Username"
+            text:""
+            height: 0
+            width:parent.width
+            KeyNavigation.tab: loginView.state == "READY" ? tf_password:tf_email
+            Component.onCompleted:{
+                tf_username.focus = true;
+            }
+        }
+        // FOR REGISTER ONLY
+        CG_TextField{
+            id:tf_email
+            placeholderText:"Email Address"
+            height: 0
+            width:parent.width
+            KeyNavigation.tab: tf_password
+            Behavior on height{
+                NumberAnimation{duration:450;}
+            }
+        }
+        CG_TextField{
+            id:tf_password
+            placeholderText:"Chessgames Password"
+            text:""
+            echoMode: TextInput.Password
+            height:0
+            width:parent.width
+            KeyNavigation.tab: tf_confirm_password
+            Keys.onReturnPressed: {
+                if(tf_username.length > 0 && tf_password.length > 0){
+                    if(loginView.state == "READY"){
+                        loginView.state = "LOGIN"
+                        loginView.loginToCG(tf_username.text,tf_password.text)
+                    }
                 }
             }
         }
-    }
+        CG_TextField{
+            id:tf_confirm_password
+            placeholderText:"Confirm Password"
+            echoMode: TextInput.Password
+            height:0
+            width:parent.width
+            Keys.onReturnPressed: {
+                if(loginView.state == "REGISTER"){
+                    loginController.attemptRegisterUser(tf_username.text,tf_password.text,tf_email.text,"");
+                }
+            }
+            onTextChanged: {
+                if (tf_password.text == tf_confirm_password.text)
+                {
+                    tf_password.textColor = "#00AA00"
+                    tf_password.font.bold = false
+                    tf_confirm_password.textColor = "#00AA00"
+                    tf_confirm_password.font.bold = false
+                }
+                else
+                {
+                    tf_password.textColor = "#FF0000"
+                    tf_password.font.bold = true
+                    tf_confirm_password.textColor = "#FF0000"
+                    tf_confirm_password.font.bold = true
+                }
+            }
 
-    /********************************************************
-    *availableContainer - Displayed when an update available
-    *    Has one button Update - starts the update download
-    * The user only has one choice - update or close.
-    ********************************************************/
-    Component{
-        id:availableContainer
+            Behavior on height{
+                NumberAnimation{duration:300;}
+            }
+        }
+
+
+        CG_DarkButton{
+            id:loginButton
+            text.text: "Login"
+            height:0
+            width:parent.width
+            mouse.onClicked:{
+                if(tf_username.length > 0 && tf_password.length > 0){
+                    if(loginView.state == "READY"){
+                        loginView.state = "LOGIN"
+                        loginView.loginToCG(tf_username.text,tf_password.text)
+                    }
+                }
+            }
+            Behavior on height{
+                NumberAnimation{duration:300}
+            }
+        }
+        Row{
+            id: socialRow
+            height: 0
+            width:parent.width
+            spacing:2
+            visible:false
+            CG_SocialMediaBtn{
+                id:fbButton
+                color: "#5d79b4"
+                shadowColor: "#164785"
+                iconSource: "images/FacebookIcon.png"
+                text: "Log in with Facebook"
+                anchors.verticalCenter: parent.verticalCenter
+                height:parent.height
+                width:parent.width/2 -2
+            }
+            CG_SocialMediaBtn{
+                id:googleButton
+                color: "#dd4b39"
+                shadowColor: "#be4031"
+                iconSource: "images/GooglePlusIcon.png"
+                text: "Sign in with Google"
+                anchors.verticalCenter: parent.verticalCenter
+                height:parent.height
+                width:parent.width/2 -2
+            }
+        }
+
+        CG_DarkButton{
+            id:registerButton
+            text.text: "Register"
+            height:0
+            width:googleButton.width
+            anchors.right:parent.right
+            mouse.onClicked:{
+                if(loginView.state == "REGISTER")
+                {
+                    if(tf_confirm_password.text == tf_password.text){
+                        loginView.state = "LOGIN"
+                        loginController.attemptRegisterUser(tf_username.text,tf_password.text,tf_email.text,"");
+                    }
+                    else{
+                        statusText.text = "Password fields do not match."
+                    }
+                }
+                else
+                {
+                    loginView.state = "REGISTER";
+                }
+            }
+        }
         CG_DarkButton{
             id:updateButton
             text.text: "Update"
-            anchors.left:parent.left
-            anchors.right:parent.right
-            anchors.leftMargin: parent.width*.025
-            anchors.rightMargin: parent.width*.025
-            height: parent.height/6.1
-            anchors.verticalCenter: parent.verticalCenter
+            width:parent.width
+            height: 0
             mouse.onClicked:{
                 CGUpdater.beginUpdateProcess();
                 loginView.state = "DOWNLOADING";
             }
-            scale:0
-            Behavior on scale{
-                NumberAnimation{from:0;to:1;duration:600}
+            Behavior on height{
+                NumberAnimation{duration:600}
             }
 
         }
-    }
-    /**********************************************************
-    *downloadContainer - Displays the current download status
-    *    Displays a progress bar and some output text.
-    **********************************************************/
-    Component{
-        id:downloadContainer
         Rectangle{
+            id:downloadBar
             color:"#f3f3f3ff"
-            anchors.left:parent.left
-            anchors.right:parent.right
-            anchors.leftMargin: parent.width*.05
-            anchors.rightMargin: parent.width*.05
-            height: width *.098 < 76 ? width*.098:76
-            anchors.verticalCenter: parent.verticalCenter
+            width:parent.width* .76
             border.width: 3
             radius:1
-            scale:0
-            Behavior on scale{
-                NumberAnimation{from:0;to:1;duration:600}
+            height:0
+            Behavior on height{
+                NumberAnimation{duration:600}
             }
 
             //"#999999ff"
         }
-    }
-    /**********************************************************
-    *waitingContainer - notifies user the Update is finished
-    *    Displays a single button "continue" to notify
-    *    application loader to swap to updated application.
-    **********************************************************/
-    Component{
-        id:waitingContainer
-        CG_DarkButton{
-            id:waitingButton
-            text.text: "Continue"
-            anchors.left:parent.left
-            anchors.right:parent.right
-            anchors.leftMargin: parent.width*.025
-            anchors.rightMargin: parent.width*.025
-            height: parent.height/6.1
-            anchors.verticalCenter: parent.verticalCenter
-            mouse.onClicked:{
-                loginView.state = "READY";
-            }
-            scale:0
-            Behavior on scale{
-                NumberAnimation{from:0;to:1;duration:600}
-            }
+        scale:0
+        Behavior on scale{
+            NumberAnimation{duration:400}
         }
     }
-
-    /************************************************************
-    *loginContainer - Notifies Player they are logging in
-    *    Has a single button that can cancel the login and take
-    *   them home.
-    *************************************************************/
-    Component{
-        id:loginContainer
-        CG_DarkButton{
-            id:cancelButton
-            text.text: "Cancel Login"
-            mouse.onClicked:{
-                loginView.state = "READY";
+    CG_DarkButton{
+        id:cancelButton
+        text.text: "cancel"
+        text.visible: false;
+        anchors.left:form.left
+        anchors.right: form.right
+        anchors.bottom:parent.bottom
+        anchors.bottomMargin: parent.height/6
+        height: 0
+        mouse.onClicked:{
+            if(loginView.state == "LOGIN"){
+                loginView.stopLoading()
                 loginController.disconnectFromServer();
+                //loginView.state = "READY"
             }
-            scale:0
-            Behavior on scale{
-                NumberAnimation{from:0;to:1;duration:600}
-            }
-            Component.onCompleted: {
-                anchors.left = parent.left
-                anchors.right = parent.right
-                anchors.leftMargin = parent.width*.025
-                anchors.rightMargin = parent.width*.025
-                height = parent.height/6.1
-                anchors.verticalCenter = parent.verticalCenter
+        }
+        Behavior on height{
+            NumberAnimation{duration:600}
+        }
+
+    }
+    Rectangle{
+        id: backArrow
+        anchors.left: parent.left
+        anchors.top:parent.top
+        anchors.margins: 10
+        color:"transparent"
+        height:50
+        width:60
+        visible:false
+        Image{
+            anchors.fill:parent
+            source:"/images/CGbackbutton2.png"
+            anchors.margins: 4
+        }
+        MouseArea{
+            anchors.fill: parent
+            onClicked: {
+                if(loginView.state == "REGISTER"){
+                    loginView.state = "READY";
+                }
             }
         }
     }
 
-    /************************************************************
-    *readyContainer - Displays the login form and register form.
-    *    In Ready state, username and password textfields are
-    *    available. When transitioning to registration form or
-    *    username form, various items will be hidden.
-    *************************************************************/
-    Component{
-        id:readyContainer
-        Column{
-            id:form
-            spacing:7
-            anchors.fill: parent
-            property alias username:tf_username
-            property alias password:tf_password
-            property alias email:tf_email
-            property alias confirmPassword:tf_confirm_password
-            property alias login:loginButton
-            property alias register:registerButton
-            property alias facebook:fbButton
-            property alias google:googleButton
-            property alias socialButtons:socialRow
-            property alias registerRow:registerRow
-            property alias registerText:registerText
-            CG_TextField{
-                id:tf_username
-                placeholderText:"Chessgames Username"
-                text:""
-                anchors.left:parent.left
-                anchors.right:parent.right
-                anchors.leftMargin: parent.width*.025
-                anchors.rightMargin: parent.width*.025
-                height: parent.height/6.1
-                KeyNavigation.tab: loginView.state == "READY" ? tf_password:tf_email
-                Component.onCompleted:{
-                    tf_username.focus = true;
-                }
-            }
-            CG_TextField{
-                id:tf_email
-                placeholderText:"Email Address"
-                anchors.left:parent.left
-                anchors.right:parent.right
-                anchors.leftMargin: parent.width*.025
-                anchors.rightMargin: parent.width*.025
-                height: 0
-                KeyNavigation.tab: tf_password
-                Behavior on height{
-                    NumberAnimation{duration:450;}
-                }
-            }
-            CG_TextField{
-                id:tf_password
-                placeholderText:"Chessgames Password"
-                text:""
-                echoMode: TextInput.Password
-                anchors.left:parent.left
-                anchors.right:parent.right
-                anchors.leftMargin: parent.width*.025
-                anchors.rightMargin: parent.width*.025
-                height: parent.height/6.1
-                KeyNavigation.tab: tf_confirm_password
-                Keys.onReturnPressed: {
-                    if(tf_username.length > 0 && tf_password.length > 0){
-                        if(loginView.state == "READY"){
-                            loginView.loginToCG(tf_username.text,tf_password.text)
-                        }
-                    }
-                }
-            }
-            CG_TextField{
-                id:tf_confirm_password
-                placeholderText:"Confirm Password"
-                echoMode: TextInput.Password
-                anchors.left:parent.left
-                anchors.right:parent.right
-                anchors.leftMargin: parent.width*.025
-                anchors.rightMargin: parent.width*.025
-                height: 0
-                Keys.onReturnPressed: {
-                    if(loginView.state == "REGISTER"){
-                        loginView.email = tf_email.text;
-                        loginView.username = tf_username.text;
-                        loginView.password = tf_password.text;
-                        loginController.attemptRegisterUser(tf_username.text,tf_password.text,tf_email.text);
-                    }
-                }
-                Behavior on height{
-                    NumberAnimation{duration:450;}
-                }
-            }
-
-
-            CG_DarkButton{
-                id:loginButton
-                text.text: "Login"
-                anchors.left:parent.left
-                anchors.right:parent.right
-                anchors.leftMargin: parent.width*.025
-                anchors.rightMargin: parent.width*.025
-                height: parent.height/6.1
-                mouse.onClicked:{
-                    if(tf_username.length > 0 && tf_password.length > 0){
-                        if(loginView.state == "READY"){
-                            loginView.loginToCG(tf_username.text,tf_password.text)
-                        }
-                    }
-                }
-            }
-            Row{
-                id: socialRow
-                anchors.left:parent.left
-                anchors.right:parent.right
-                anchors.leftMargin: parent.width*.025
-                anchors.rightMargin: parent.width*.025
-                height: parent.height/6.1
-                anchors.margins: 2
-                spacing:2
-                CG_SocialMediaBtn{
-                    id:fbButton
-                    color: "#5d79b4"
-                    shadowColor: "#164785"
-                    iconSource: "images/FacebookIcon.png"
-                    text: "Log in with Facebook"
-                    anchors.verticalCenter: parent.verticalCenter
-                    height:parent.height * .98
-                    width:parent.width/2 -2
-                }
-                CG_SocialMediaBtn{
-                    id:googleButton
-                    color: "#dd4b39"
-                    shadowColor: "#be4031"
-                    iconSource: "images/GooglePlusIcon.png"
-                    text: "Sign in with Google+"
-                    anchors.verticalCenter: parent.verticalCenter
-                    height:parent.height * .98
-                    width:parent.width/2 -2
-                }
-            }
-            Item{
-                id:registerRow
-                anchors.left:parent.left
-                anchors.right:parent.right
-                anchors.leftMargin: parent.width*.025
-                anchors.rightMargin: parent.width*.025
-                height: parent.height/6.8
-                anchors.margins: 6
-                Text{
-                    id:registerText
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    text:"Don't Have an Account?"
-                    font.pixelSize: googleButton.height * .41 <  googleButton.width * .115 ? googleButton.height *.41:googleButton.width * .115
-                    anchors.top:parent.top
-                    anchors.bottom: parent.bottom
-                    anchors.left:parent.left
-                    anchors.right:registerButton.left
-                    anchors.rightMargin: 8
-                    anchors.margins: 2
-                }
-                CG_DarkButton{
-                    id:registerButton
-                    text.text: "Register"
-                    anchors.top:parent.top
-                    anchors.bottom: parent.bottom
-                    anchors.right:parent.right
-                    anchors.margins: 2
-                    width:googleButton.width
-                    mouse.onClicked:{
-                        if(loginView.state == "REGISTER")
-                        {
-                            if(tf_confirm_password.text == tf_password.text){
-                                loginView.state = "LOGIN"
-                                loginView.email = tf_email.text;
-                                loginView.username = tf_username.text;
-                                loginView.password = tf_password.text;
-                                loginController.attemptRegisterUser(tf_username.text,tf_password.text,tf_email.text);
-                            }
-                            else{
-                                statusText.text = "Password fields do not match."
-                            }
-                        }
-                        else
-                        {
-                            loginView.state = "REGISTER";
-                        }
-                    }
-                }
-            }
-            scale:0
-            Behavior on scale{
-                NumberAnimation{from:0;to:1;duration:400}
-            }
-        }
+    Component.onCompleted: {
+        loginController.setConnection(APP_IP,APP_PORT)
     }
 }

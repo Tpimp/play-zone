@@ -10,33 +10,33 @@ class CGLogin : public QQuickItem
 public:
     CGLogin(QQuickItem* parent=nullptr);
     ~CGLogin();
-    Q_INVOKABLE QByteArray getPassword();
+    Q_INVOKABLE void setConnection(QString ip, int port);
 signals:
+    //server/socket information
     void serverReady();
     void disconnectedFromServer(int reason);
     void failedToConnectToServer();
+
+    // login
     void userCredentialsDenied();
     void userLoggedIn();
+
+    // user register
     void userDeniedRegister(QString reason);
     void userRegistered();
+
+    //server
+    void currentPing(quint64 ping);
+
 public slots:
     void disconnectFromServer();
-    void setServerAddress(QString ip, int port);
     void login(QString name, QString password);
-    void attemptRegisterUser(QString name, QString password, QString email);
+    void attemptRegisterUser(QString name, QString password, QString email, QString data);
 
 protected:
     CGServer*  mServer;
-    QString    mUsername;
-    QByteArray mHashedPass;
-    QString    mEmail;
     QString    mConnectionString;
-    bool       mConnected;
     int        mTries;
-protected slots:
-    void       attemptRegistration();
-    void       connectedToHost();
-    void       loginToHost();
 
 };
 

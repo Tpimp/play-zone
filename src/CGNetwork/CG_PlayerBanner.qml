@@ -9,6 +9,7 @@ Rectangle {
     property alias player:nameText.text
     property alias elo:eloText.text
     property string buttonIcon:""
+    property alias  clock:clock.text
     property var    emblem:undefined
     signal buttonPressed();
     signal lostFocus();

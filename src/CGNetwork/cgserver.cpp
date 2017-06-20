@@ -5,21 +5,34 @@
 
 
 Q_GLOBAL_STATIC(CGServer, CG_SERVER_S)
-CGServer::CGServer(QObject *parent) : QObject(parent)
+CGServer::CGServer(QObject *parent) : QObject(parent),mConnected(false)
 {
     mSocket.setReadBufferSize(4964000000);
     //qRegisterMetaType(QAbstractSocket::SocketError);
-    connect(&mSocket, &QWebSocket::connected, this, &CGServer::connectedToHost);
+
     connect(&mSocket, static_cast<void(QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),
             this, &CGServer::socketErrored);
     connect(&mSocket, &QWebSocket::disconnected, this, &CGServer::handleDisconnect);
     connect(&mSocket, &QWebSocket::binaryMessageReceived, this, &CGServer::parseServerMessage);
-
+    connect(&mSocket, &QWebSocket::pong, this, &CGServer::pongReceived );
 }
 
 CGServer* CGServer::globalServer()
 {
     return CG_SERVER_S;
+}
+void CGServer::connectToLogin()
+{
+    disconnect(&mSocket,&QWebSocket::connected,0,0);
+    connect(&mSocket, &QWebSocket::connected, this, &CGServer::loginWithCredentials);
+    connectToHost();
+}
+
+void CGServer::connectToRegister()
+{
+    disconnect(&mSocket,&QWebSocket::connected,0,0);
+    connect(&mSocket, &QWebSocket::connected, this, &CGServer::registerWithCredentials);
+    connectToHost();
 }
 
 void CGServer::connectToHost(QString address, int port)
@@ -32,18 +45,30 @@ void CGServer::connectToHost(QString address, int port)
     mSocket.open(QUrl(url));
 
 }
-void CGServer::connectToHost(QString url)
+void CGServer::connectToHost()
 {
-    mSocket.open(QUrl(url));
+    qDebug() << "Opening socket connection to host: " << mConnectionString;
+    mSocket.open(QUrl(mConnectionString));
 }
+
+bool CGServer::connected()
+{
+    mHeartBeat.start(500,this);
+    mConnected = true;
+    return mConnected;
+}
+
 void CGServer::disconnectFromHost()
 {
+    mConnected = false;
     mSocket.close(QWebSocketProtocol::CloseCodeGoingAway,"Logout");
 }
 
 
+
 void CGServer::handleDisconnect()
 {
+    mConnected = false;
     emit disconnectedFromServer(0);
 }
 
@@ -73,7 +98,7 @@ void CGServer::parseServerMessage(QByteArray message)
                 QString profile_data = plyr.at(0).toString();
                 QString last = plyr.at(1).toString();
 
-                emit userProfileData( profile_data,last);
+                emit setProfileData( profile_data);
                 emit userLoggedIn();
             }
             else{
@@ -93,19 +118,13 @@ void CGServer::parseServerMessage(QByteArray message)
         }
         case MATCHED_PLAYER:{
             QJsonObject player_data( params.at(0).toObject());
-            /*
-            QString name(obj.value("name").toString());
-            int elo(obj.value("elo").toInt());
-            bool color(obj.value("color").toBool());
-            QString country(obj.value("flag").toString());
-            QString avatar(obj.value("avatar").toString());
-            quint64 game_id(obj.value("id").toDouble());*/
             emit lobbyFoundMatch(player_data);
         }
         case SEND_SYNC:{
             if(params.count() > 0){
                 int state(params.at(0).toInt());
-                emit gameSynchronized(state);
+                quint64 time(params.at(1).toDouble());
+                emit gameSynchronized(state,time);
             }
             break;
         }
@@ -139,10 +158,10 @@ void CGServer::parseServerMessage(QByteArray message)
             if(params.count() > 0){
                 QString user_data = params.at(0).toString();
                 QString last;
-                emit setUserData(user_data,last);
+                emit refreshUserData(user_data);
             }
             else{
-                emit failedToSetUserData();
+                //emit failedToSetUserData("");
             }
             break;
         }
@@ -153,7 +172,7 @@ void CGServer::parseServerMessage(QByteArray message)
                 QJsonArray data = doc2.array();
                 QString user_data = data.at(0).toString();
                 QString recent = data.at(1).toString();
-                emit refreshUserData(user_data,recent);
+                emit refreshUserData(user_data);
             }
         }
         default: break;
@@ -162,8 +181,138 @@ void CGServer::parseServerMessage(QByteArray message)
 }
 
 
+void CGServer::pongReceived(quint64 time, const QByteArray &message)
+{
+    if(time>1500){
+        mSocket.ping();
+    }
+    else{
+        mHeartBeat.start(1500-time,this);
+    }
+    mLatency = time;
+    emit currentPing(time);
+}
+
+void CGServer::timerEvent(QTimerEvent *event){
+    QByteArray array = QByteArray::number(mLatency);
+    mSocket.ping(array);
+    mHeartBeat.stop();
+}
+
+void CGServer::updateProfile(QJsonObject data)
+{
+    QJsonObject obj;
+    QJsonArray array;
+    obj["T"] = SET_USER_DATA;
+    // name, pass, data
+    array.append(mConnectionName);
+    QString str_pass = QString::fromLatin1(mHashedPassword,mHashedPassword.size());
+    array.append(str_pass);
+    array.append(data);
+    obj["P"] = array;
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray output = doc.toBinaryData();
+    mSocket.sendBinaryMessage(output);
+}
+
+void CGServer::loginToServer(QString name, QByteArray hashed_password){
+    mConnectionName = name;
+    mHashedPassword = hashed_password;
+    if(mConnected){
+        QJsonObject obj;
+        // type
+        obj["T"] = VERIFY_USER;
+        QJsonArray array;
+        array.append(name);
+        QString str_pass = QString::fromLatin1(mHashedPassword,mHashedPassword.size());
+        array.append(str_pass);
+        obj["P"] = array;
+        QJsonDocument doc;
+        doc.setObject(obj);
+        QByteArray output = doc.toBinaryData();
+        mSocket.sendBinaryMessage(output);
+    }
+    else{
+        connectToLogin();
+    }
+}
+
+void CGServer::registerToServer(QString name, QByteArray password, QString email, QString data)
+{
+    mConnectionName = name;
+    mHashedPassword = password;
+    mConnectionEmail = email;
+    mConnectionData = data;
+    if(mConnected){
+        QJsonObject obj;
+        obj["T"] = REGISTER_USER;
+        QJsonArray array;
+        array.append(name);
+        QString str_pass = QString::fromLatin1(password,password.size());
+        array.append(str_pass);
+        array.append(email);
+        array.append(data);
+        obj["P"] = array;
+        QJsonDocument doc;
+        doc.setObject(obj);
+        QByteArray output = doc.toBinaryData();
+        mSocket.sendBinaryMessage(output);
+    }
+    else{
+        connectToRegister();
+    }
+}
+
+void CGServer::setConnectionString(QString ip, int port)
+{
+    QString url("ws://");
+    url.append(ip);
+    url.append(":");
+    url.append(QString::number(port));
+    mConnectionString = url;
+}
+
+void CGServer::loginWithCredentials()
+{
+    disconnect(&mSocket, &QWebSocket::connected, this, &CGServer::loginWithCredentials);
+    connected();
+    QJsonObject obj;
+    // type
+    obj["T"] = VERIFY_USER;
+    QJsonArray array;
+    array.append(mConnectionName);
+    QString str_pass = QString::fromLatin1(mHashedPassword,mHashedPassword.size());
+    array.append(str_pass);
+    obj["P"] = array;
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray output = doc.toBinaryData();
+    mSocket.sendBinaryMessage(output);
+}
+
+void CGServer::registerWithCredentials()
+{
+    disconnect(&mSocket, &QWebSocket::connected, this, &CGServer::registerWithCredentials);
+    connected();
+    QJsonObject obj;
+    obj["T"] = REGISTER_USER;
+    QJsonArray array;
+    array.append(mConnectionName);
+    QString str_pass = QString::fromLatin1(mHashedPassword,mHashedPassword.size());
+    array.append(str_pass);
+    array.append(mConnectionEmail);
+    array.append(mConnectionData);
+    obj["P"] = array;
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray output = doc.toBinaryData();
+    mSocket.sendBinaryMessage(output);
+}
+
 void CGServer::socketErrored(QAbstractSocket::SocketError err)
 {
+    mConnected = false;
     qDebug() << "Server socket errored "<< mSocket.errorString();
     emit disconnectedFromServer(3);
 }

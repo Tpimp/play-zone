@@ -5,24 +5,6 @@ import QtQuick.Controls 2.1
 
 Rectangle {
     id: match
-    property var profile:undefined
-    onProfileChanged: {
-        if(profile !== undefined){
-            flag.source = "image://flags/" +profile.flag
-            profile.profileSet.connect(updateProfile)
-            username.text = profile.name
-            eloText.text = profile.elo
-
-        }
-    }
-    function setFlag(){
-        flag.source = "image://flags/" +match.profile.flag
-    }
-    function updateProfile(){
-        flag.source = "image://flags/" +profile.flag
-        username.text = profile.name
-        eloText.text = profile.elo
-    }
 
     Image{
         id:background
@@ -99,29 +81,28 @@ Rectangle {
             }
         }
     }
-//    LobbyButton{
-//        id:oneButton
-//        anchors.right:fiveButton.left
-//        anchors.top:userBar.bottom
-//        anchors.rightMargin: 8
-//        height:userBar.height * .8
-//        width:height
-//        anchors.topMargin:8
-//        minuteText:"1"
-//        mouse.onClicked: {
-//            lobbyController.joinMatchMaking(0)
-//            root.joinMatchMaking();
-//        }
-//    }
+    LobbyButton{
+        id:oneButton
+        anchors.right:fiveButton.left
+        anchors.top:fiveButton.top
+        anchors.rightMargin: 8
+        height:userBar.height * .75
+        width:height
+        minuteText:"1"
+        mouse.onClicked: {
+            lobbyController.joinMatchMaking(0)
+            root.joinMatchMaking();
+        }
+    }
 
     LobbyButton{
         id:fiveButton
         anchors.top:userBar.bottom
-        anchors.left:userBar.left
-        anchors.right: userBar.right
         anchors.margins: userBar.width * 0.15
+        anchors.horizontalCenter: userBar.horizontalCenter
         height:userBar.height * .75
-        minuteText:"Start Matchmaking"
+        width:height
+        minuteText:"5"
         mouse.onClicked: {
             lobbyController.joinMatchMaking(1)
             root.joinMatchMaking();
@@ -129,19 +110,36 @@ Rectangle {
 
     }
 
-//    LobbyButton{
-//        id:thirtyButton
-//        anchors.left:fiveButton.right
-//        anchors.leftMargin: 8
-//        anchors.top:fiveButton.top
-//        height:oneButton.width
-//        width:oneButton.width
-//        minuteText:"30"
-//        mouse.onClicked: {
-//            lobbyController.joinMatchMaking(2)
-//            root.joinMatchMaking();
-//        }
+    LobbyButton{
+        id:thirtyButton
+        anchors.left:fiveButton.right
+        anchors.leftMargin: 8
+        anchors.top:fiveButton.top
+        height:oneButton.width
+        width:oneButton.width
+        minuteText:"30"
+        mouse.onClicked: {
+            lobbyController.joinMatchMaking(2)
+            root.joinMatchMaking();
+        }
 
-//    }
+    }
+    Connections{
+        target:playerProfile
+        onCountryChanged:{
+            flag.source = "image://flags/" +country
+        }
+        onNameChanged:{
+            username.text = name;
+        }
+        onEloChanged:{
+            eloText.text = elo;
+        }
+    }
 
+    Component.onCompleted: {
+        flag.source = "image://flags/" + playerProfile.country()
+        username.text = playerProfile.name()
+        eloText.text = playerProfile.elo()
+    }
 }

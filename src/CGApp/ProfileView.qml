@@ -2,23 +2,35 @@ import QtQuick 2.8
 import CGNetwork 1.0
 import CGFlags 1.0
 import CGAvatars 1.0
-
+import "chess.js" as Engine
 Rectangle {
     id: view
     clip:false
-    property var profile:undefined
     property var profileBoard:undefined
-    signal profileLoaded(string name, int elo, string flag);
-
-    function setProfile(profile){
-        if(profile !== undefined){
-            view.profile = profile;
-            profileLoader.active = true;
-            flag.source = "image://flags/" +profile.flag
-            avatarImg.source = "image://avatars/" +profile.avatar
-            view.profileBoard.setAnimation(profile.getRecentPGN())
-        }
+    function setShowingReview(review,fen,start_back){
+        reviewView.setReview(review,fen,start_back);
+        reviewView.visible = true;
     }
+
+    function testGameReview()
+    {
+        var pgn = ['[Event "CG composition contest"]',
+                '[Site "Chessgames.com"]',
+                '[Date "2017.06.16"]',
+                '[Round "1"]',
+                '[White "WannaBe"]',
+                '[Black "Stockfish"]',
+                '[Result "1-0"]',
+                '[WhiteElo "?"]',
+                '[BlackElo "?"]',
+                '',
+                '1. e4 Na6 2. e5 d5 3. exd6 Bh3 4. Bb5+ Qd7 5. Nxh3 O-O-O 6. O-O Qxb5 7. dxe7 Kb8 8. exd8=R# 1-0']
+        profileBoard.board.setBoardPGN(pgn.join('\n'));
+        var history = profileBoard.board.getHistory();
+        reviewView.setReview(history,"",true);
+        reviewView.visible = true;
+    }
+
     states:[
         State{
             name:"HOME"
@@ -74,26 +86,21 @@ Rectangle {
 
     ]
     state: "HOME"
-    Loader{
-       id: profileLoader
-       active:false
-       sourceComponent: Connections{
-            target:profile
-            onCountryChanged: {
-                if(country !== ""){
-                    flag.source = "image://flags/" +profile.flag
-                }
-            }
-            onAvatarChanged: {
-                if(avatar !== ""){
-                    avatarImg.source = "image://avatars/" +profile.avatar
-                }
-            }
-            onReceivedLastMatch:{
-                view.profileBoard.setAnimation(pgn)
-            }
+    Connections{
+        target:playerProfile
+        onCountryChanged: {
+                flag.source = "image://flags/" +country
+
         }
+        onAvatarChanged: {
+            avatarImg.source = "image://avatars/" +avatar
+
+        }
+//      onReceivedLastMatch:{
+//            view.profileBoard.setAnimation(pgn)
+//        }
     }
+
     /*****************************************************************************
     *This Begins The User Interface
     * The Profile View consists of:
@@ -187,6 +194,12 @@ Rectangle {
 
         Behavior on height {
             NumberAnimation{duration:450}
+        }
+        MouseArea{
+            anchors.fill: parent
+            onClicked: {
+                testGameReview();
+            }
         }
     }
     Rectangle{
@@ -350,6 +363,8 @@ Rectangle {
             anchors.margins: 4
             fillMode: Image.PreserveAspectFit
             smooth:true
+            cache: false
+            source:"image://flags/" + playerProfile.country()
             MouseArea{
                 anchors.fill: parent
                 onClicked: view.state = "COUNTRY"
@@ -370,10 +385,10 @@ Rectangle {
             id: avatarImg
             anchors.fill: parent
             anchors.margins: 4
-            asynchronous: true
             cache: false
             fillMode: Image.PreserveAspectFit
             smooth:true
+            source:"image://avatars/"+ playerProfile.avatar();
         }
         MouseArea{
             anchors.fill: parent
@@ -389,8 +404,7 @@ Rectangle {
         sourceComponent: CountryPicker{
             visible: visible
             onSetCountry: {
-                profile.setCountry(country);
-                profile.requestUpdateProfile();
+                playerProfile.setCountry(country);
                 view.state = "HOME"
             }
         }
@@ -402,24 +416,22 @@ Rectangle {
         sourceComponent: AvatarPicker{
             visible: visible
             onSetAvatar: {
-                profile.setAvatar(avatar)
-                profile.requestUpdateProfile();
+                playerProfile.setAvatar(avatar)
                 view.state = "HOME"
             }
         }
     }
 
-    Loader{
-        id:gameReviewLoader
-        anchors.fill: parent
-        active:false
-        sourceComponent: CG_GameReview{
-
-        }
+    GameReview{
+         id:reviewView
+         anchors.fill: parent
+         visible:false
     }
 
     Component.onCompleted: {
         lastLoader.active =false;
         lastLoader.active =true;
+        flag.source =  "image://flags/" + playerProfile.country();
+        avatarImg.source = "image://avatars/"+ playerProfile.avatar();
     }
 }

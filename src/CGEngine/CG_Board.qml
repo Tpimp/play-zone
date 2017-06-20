@@ -87,6 +87,11 @@ Item {
         return null;
     }
 
+    function setBoardPGN(pgn)
+    {
+        board.game.load_pgn(pgn);
+    }
+
     // function redraw all the board pieces
     function resizeBoard(){
         chessEngine.setCellSize(board.cellSize);
@@ -120,6 +125,76 @@ Item {
         var board_data = board.game.board();
         chessEngine.resetBoard(board_data)
         finishedLoading();
+    }
+    function promotion(tile,promote,color){
+        var tile_obj = tileRepeater.itemAt(tile);
+        if(tile_obj.piece !== null && tile_obj.piece !== undefined){
+            var piece_str = promote+color;
+            var p_index = PieceTable[piece_str];
+            tile_obj.piece.type = "cg_kramnik.png#"+p_index
+        }
+    }
+
+    function createPiece(type,color,tile){
+        var tile_obj = tileRepeater.itemAt(tile);
+        var row = parseInt(tile/8);
+        var col = parseInt(tile%8);
+        var piece_str = type+color;
+
+
+        var p_index = PieceTable[piece_str];
+        if(tile_obj.piece !== null && tile_obj.piece !== undefined){
+            tile_obj.piece.type = "cg_kramnik.png#"+p_index
+        }
+        else{
+            var piece = pieceComponent.createObject(boardMouse,{});
+            tile_obj.setPiece(piece,tile,p_index);
+        }
+        if(type == 'k'){
+            if(color == 'w'){
+                board.whiteKing = tile_obj;
+            }
+            else
+            {
+                board.blackKing = tile_obj;
+            }
+        }
+    }
+
+    function movePiece(tile_from,tile_to){
+        var to_obj = tileRepeater.itemAt(tile_to);
+        var from_obj = tileRepeater.itemAt(tile_from);
+        to_obj.piece = from_obj.piece;
+        to_obj.piece.index = tile_to;
+        from_obj.piece = null;
+        to_obj.piece.x = to_obj.x;
+        to_obj.piece.y = to_obj.y;
+        var got = board.game.get(to_obj.pos);
+        if(got){
+            if(got.type === 'k'){
+                if(got.color === 'w'){
+                    board.whiteKing = to_obj;
+                }
+                else
+                {
+                    board.blackKing = to_obj;
+                }
+            }
+
+            board.turn = board.game.turn()
+            if(board.turn === 'w'){
+                board.whitesTurn();
+                if(board.game.in_check()){
+                    chessEngine.isInCheck(board.whiteKing.index);
+                }
+            }
+            else{
+                board.blacksTurn();
+                if(board.game.in_check()){
+                    chessEngine.isInCheck(board.blackKing.index);
+                }
+            }
+        }
     }
 
     function clearHeldPiece()
@@ -203,6 +278,19 @@ Item {
         }
         clearHeldPiece();
     }
+
+    function getHistory(){
+        return board.game.history({"verbose": true })
+    }
+
+    function getFEN(){
+        return board.game.fen();
+    }
+
+    function getPGN(){
+        return board.game.pgn();
+    }
+
     // CGEngine integration ( A bulk of the logic )
 
     CGEngine{
@@ -216,7 +304,7 @@ Item {
 
             var p_index = PieceTable[piece_str];
             if(tile_obj.piece !== null && tile_obj.piece !== undefined){
-                tile_obj.piece.piece = "cg_kramnik.png#"+p_index
+                tile_obj.piece.type = "cg_kramnik.png#"+p_index
             }
             else{
                 var piece = pieceComponent.createObject(boardMouse,{});

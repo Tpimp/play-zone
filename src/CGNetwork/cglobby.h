@@ -18,7 +18,6 @@ public:
 
 signals:
     void matchedWithPlayer(QJsonObject opponent);
-
 public slots:
    void lobbyMessage(QString lobby, QString message);
    void joinMatchMaking(int type);

@@ -29,5 +29,7 @@
         <file>images/TwitHeart.png</file>
         <file>images/PlayerMatched.png</file>
         <file>images/check2.png</file>
+        <file>images/cg_leftArrow.png</file>
+        <file>images/cg_leftBegin.png</file>
     </qresource>
 </RCC>
