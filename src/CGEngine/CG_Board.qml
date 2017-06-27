@@ -21,7 +21,7 @@ Item {
     property var     whiteKing:undefined
     property var     blackKing:undefined
     property var     boardLastMove: undefined
-
+    property bool    pieceRotation:false
     signal finishedLoading();
     signal sendMove(int from, int to, string fen, string promote);
     signal whitesTurn();
@@ -29,7 +29,7 @@ Item {
     signal checked();
     signal wrongMove();
     signal promote(var from, var to);
-    signal gameOver(int result, var move, string fen, string game);
+    signal gameOver(int result, string game);
     signal pieceTaken(var piece);
 
     // external flags
@@ -37,6 +37,27 @@ Item {
     property alias  borderColor:boardBackground.color
 
     // after values are changed, redraw the board
+    onPieceRotationChanged: {
+        if(pieceRotation){
+            boardBackground.rotation = 180;
+            for(var index = 0; index < 64; index++){
+                var tile = tileRepeater.itemAt(index);
+                if(tile.piece){
+                    tile.piece.image.rotation = 180;
+                }
+            }
+        }
+        else{
+            boardBackground.rotation = 0;
+            for(var index2 = 0; index2 < 64; index2++){
+                var tile2 = tileRepeater.itemAt(index2);
+                if(tile2.piece){
+                    tile2.piece.image.rotation = 0;
+                }
+            }
+        }
+    }
+
     onCellSizeChanged:{
         board.resizeBoard();
     }
@@ -74,10 +95,10 @@ Item {
         board.game.header('White',white,'Black',black,'Date',date);
     }
     function resign(){
-        board.gameOver(2, boardLastMove, board.game.fen(), board.game.pgn());
+        board.gameOver(-3, board.game.pgn());
     }
     function sendDrawAccept(){
-        board.gameOver(0, boardLastMove, board.game.fen(), board.game.pgn());
+        board.gameOver(0, board.game.pgn());
     }
     function getLastMove(){
         var history = board.game.history();
@@ -145,9 +166,21 @@ Item {
         var p_index = PieceTable[piece_str];
         if(tile_obj.piece !== null && tile_obj.piece !== undefined){
             tile_obj.piece.type = "cg_kramnik.png#"+p_index
+            if(pieceRotation){
+                tile_obj.piece.image.rotation = 180;
+            }
+            else{
+                tile_obj.piece.image.rotation = 0;
+            }
         }
         else{
             var piece = pieceComponent.createObject(boardMouse,{});
+            if(pieceRotation){
+                piece.image.rotation = 180;
+            }
+            else{
+                piece.image.rotation = 0;
+            }
             tile_obj.setPiece(piece,tile,p_index);
         }
         if(type == 'k'){
@@ -235,7 +268,7 @@ Item {
             board.boardLastMove = move_obj;
             if(board.game.game_over()){
                 chessEngine.handleGameOver(board.game.in_draw(),board.game.in_checkmate(),board.game.in_stalemate(),
-                                           board.game.in_threefold_repetition(),board.game.insufficient_material())
+                                           board.game.in_threefold_repetition(),board.game.insufficient_material(),false)
             }
         }
     }
@@ -265,7 +298,7 @@ Item {
                 board.boardLastMove = move_obj;
                 if(board.game.game_over()){
                     chessEngine.handleGameOver(board.game.in_draw(),board.game.in_checkmate(),board.game.in_stalemate(),
-                                               board.game.in_threefold_repetition(),board.game.insufficient_material())
+                                               board.game.in_threefold_repetition(),board.game.insufficient_material(),true)
                 }
             }
         }
@@ -290,6 +323,10 @@ Item {
     function getPGN(){
         return board.game.pgn();
     }
+    function setPGN(pgn){
+        board.game.load_pgn(pgn);
+        refreshBoard();
+    }
 
     // CGEngine integration ( A bulk of the logic )
 
@@ -305,9 +342,21 @@ Item {
             var p_index = PieceTable[piece_str];
             if(tile_obj.piece !== null && tile_obj.piece !== undefined){
                 tile_obj.piece.type = "cg_kramnik.png#"+p_index
+                if(pieceRotation){
+                    tile_obj.piece.image.rotation = 180;
+                }
+                else{
+                    tile_obj.piece.image.rotation = 0;
+                }
             }
             else{
                 var piece = pieceComponent.createObject(boardMouse,{});
+                if(pieceRotation){
+                    piece.image.rotation = 180;
+                }
+                else{
+                    piece.image.rotation = 0;
+                }
                 tile_obj.setPiece(piece,tile,p_index);
             }
             if(type == 'k'){
@@ -349,13 +398,23 @@ Item {
             if(board.turn === 'w'){
                 board.whitesTurn();
                 if(board.game.in_check()){
-                    chessEngine.isInCheck(board.whiteKing.index);
+                    if(board.game.in_checkmate()){
+                        chessEngine.isInCheck(board.whiteKing.index,true);
+                    }
+                    else{
+                        chessEngine.isInCheck(board.whiteKing.index,false);
+                    }
                 }
             }
             else{
                 board.blacksTurn();
                 if(board.game.in_check()){
-                    chessEngine.isInCheck(board.blackKing.index);
+                    if(board.game.in_checkmate()){
+                        chessEngine.isInCheck(board.blackKing.index,true);
+                    }
+                    else{
+                        chessEngine.isInCheck(board.blackKing.index,false);
+                    }
                 }
             }
         }
@@ -367,11 +426,21 @@ Item {
             var tile_obj = tileRepeater.itemAt(index);
             checkText.x = tile_obj.x - (cellSize/2);
             checkText.y = tile_obj.y;
+            checkText.source = "/images/check2.png";
             checkText.visible = true;
             board.checked();
             checkAnimation.start();
-
         }
+        onPlayerCheckmate:{
+            var tile_obj = tileRepeater.itemAt(index);
+            checkText.x = tile_obj.x - (cellSize/2);
+            checkText.y = tile_obj.y;
+            checkText.source = "/images/checkmate.png"
+            checkText.visible = true;
+            board.checked();
+            checkAnimation.start();
+        }
+
 //        onRemovePiece:{
 //            var tile_obj = tileRepeater.itemAt(index);
 //            if(tile_obj.piece){
@@ -381,42 +450,13 @@ Item {
 //        }
 
         onGameOverCheckmate: {
-            var result;
-            if(board.game.turn() === 'b'){
-                if(playerProfile.color){ // player one wins
-                    result = 1;
-                }
-                else // player two wins
-                {
-                    result = -1;
-                }
-
-            }
-            else{
-                if(!playerProfile.color){ // player one wins
-                    result = 1;
-                }
-                else // player two wins
-                {
-                    result = -1;
-                }
-            }
-            var game = board.game.pgn();
-            board.game.undo();
-            var fen = board.game.fen();
-            board.gameOver(result, board.boardLastMove ,fen, game);
+            board.gameOver(result, board.game.pgn());
         }
         onGameOverDraw: {
-            var game = board.game.pgn();
-            board.game.undo();
-            var fen = board.game.fen();
-            board.gameOver(0, board.boardLastMove ,fen, game);
+            board.gameOver(type, board.game.pgn());
         }
         onGameOverStaleMate: {
-            var game = board.game.pgn();
-            board.game.undo();
-            var fen = board.game.fen();
-            board.gameOver(0, board.boardLastMove ,fen, game);
+            board.gameOver(10,board.game.pgn());
         }
 
         onRefreshPiece:{
@@ -461,42 +501,48 @@ Item {
             anchors.margins: 1
             columns: 8
             z:2
-                Repeater{
-                    id:tileRepeater
-                    model:64
-                    CG_Tile{
-                        id: cell
-                        height:cellSize
-                        width:cellSize
-                    }
-                    Component.onCompleted: {
-                        for(var index = 0; index < 64; index++){
-                            var row =parseInt(index / 8);
-                            var cell = tileRepeater.itemAt(index)
-                            if ((row % 2) == 0)
-                            {
-                                if (index % 2){
-                                    cell.setColor(boardDark,true);
-                                }
-                                else{
-                                    cell.setColor(boardLight,false);
-                                }
-                            }
-                            else
-                            {
-                                if (index % 2){
-                                    cell.setColor(boardLight,false);
-                                }
-                                else{
-                                    cell.setColor(boardDark,true);
-                                }
-                            }
-                            cell.pos =  chessEngine.getName(index);
-                            cell.index = index;
-                            cell.piece = null;
+            Repeater{
+                id:tileRepeater
+                model:64
+                CG_Tile{
+                    id: cell
+                    height:cellSize
+                    width:cellSize
+                }
+                Component.onCompleted: {
+                    for(var index = 0; index < 64; index++){
+                        var row =parseInt(index / 8);
+                        var cell = tileRepeater.itemAt(index)
+                        if(pieceRotation){
+                            cell.rotation = -90;
                         }
+                        else{
+                            cell.rotation = 90;
+                        }
+                        if ((row % 2) == 0)
+                        {
+                            if (index % 2){
+                                cell.setColor(boardDark,true);
+                            }
+                            else{
+                                cell.setColor(boardLight,false);
+                            }
+                        }
+                        else
+                        {
+                            if (index % 2){
+                                cell.setColor(boardLight,false);
+                            }
+                            else{
+                                cell.setColor(boardDark,true);
+                            }
+                        }
+                        cell.pos =  chessEngine.getName(index);
+                        cell.index = index;
+                        cell.piece = null;
                     }
                 }
+            }
         }
         CG_DragSurface{
             id:boardMouse
@@ -504,6 +550,7 @@ Item {
             cellSize:board.cellSize
             rowCount:8
             onClickStarted:{
+
                 var tile = tileRepeater.itemAt(index);
                 var piece = tile.piece;
                 if(piece !== null && piece !== undefined){
@@ -563,20 +610,36 @@ Item {
             }
 
             onDragMoved:{
-                var from_tile = tileRepeater.itemAt(start);
-                if(from_tile){
-                    var to_tile = tileRepeater.itemAt(end);
-                    from_tile.piece.selected = false;
-                    board.makeMove(from_tile,to_tile,'q'); //initial check
+                if(boardMouse.holdingValidClick){
+                    var tile2 = tileRepeater.itemAt(clickIndex);
+                    tile2.piece.selected = false;
+                    boardMouse.setSelected(-1,false)
                 }
+                var from_tile = tileRepeater.itemAt(start);
+                if(end < 64 && end >= 0){
+                    if(from_tile){
+                        var to_tile = tileRepeater.itemAt(end);
+                        from_tile.piece.selected = false;
+                        board.makeMove(from_tile,to_tile,'q'); //initial check
+                    }
+                }
+                else{
+                    from_tile.piece.selected = false;
+                    from_tile.piece.x = from_tile.x;
+                    from_tile.piece.y = from_tile.y;
+                    board.wrongMove();
+                }
+
                 drag.target = null;
                 boardMouse.setSelected(-1,false);
                 board.moves = [];
             }
             onDragStartHover: {
                 var tile = tileRepeater.itemAt(start);
-                if(chessEngine.checkValidMove(board.moves, tile.pos)){
-                    tile.selected = true;
+                if(tile){
+                    if(chessEngine.checkValidMove(board.moves, tile.pos)){
+                        tile.selected = true;
+                    }
                 }
             }
             onDragStoppedHover: {
@@ -591,7 +654,7 @@ Item {
 
     Timer{
         id:creationTimer
-        interval:1
+        interval:3
         running:false
         repeat:false
         onTriggered: board.refreshBoard();

@@ -13,9 +13,15 @@ Rectangle{
     signal loggedIn()
     function loginToCG(user,password){
         loginView.state = "LOGIN";
-        console.log("Trying to log in")
         loginController.login(user,password);
     }
+    function cancelLogin(){
+        if(loginView.state == "LOGIN"){
+            loginView.stopLoading()
+            loginController.disconnectFromServer();
+        }
+    }
+
     function registerUser(user, password, email){
         loginController.attemptRegisterUser(user,password,email, "");
     }
@@ -35,7 +41,6 @@ Rectangle{
         target: CGUpdater // comes from the C++ application loader
         onUpdateAvailable: loginView.state = "AVAILABLE";
         onReady:{
-            console.log("No Updates Found")
             loginView.state = "READY";}
     }
 
@@ -52,6 +57,7 @@ Rectangle{
             statusText.text = "User Logout Successful"
             tf_password.textColor = "black";
             tf_confirm_password.text = "";
+            stopLoading()
         }
         onUserCredentialsDenied: {
             statusText.text = "Playzone member not found.\nAttempting to login to chessgames.com"
@@ -132,8 +138,7 @@ Rectangle{
         State{
             name:"LOGIN"
             PropertyChanges {target:statusText; text:""}
-            StateChangeScript{script:loginView.startLoading("Connecting to Chessgames Server...",850,false);}
-            PropertyChanges {target:cancelButton; height:buttonSize; text.visible: true }
+            StateChangeScript{script:loginView.startLoading("Connecting to\nChessgames Server...",850,false);}
             PropertyChanges{target:logoAnimation;running:false;}
         }
 
@@ -442,27 +447,7 @@ Rectangle{
             NumberAnimation{duration:400}
         }
     }
-    CG_DarkButton{
-        id:cancelButton
-        text.text: "cancel"
-        text.visible: false;
-        anchors.left:form.left
-        anchors.right: form.right
-        anchors.bottom:parent.bottom
-        anchors.bottomMargin: parent.height/6
-        height: 0
-        mouse.onClicked:{
-            if(loginView.state == "LOGIN"){
-                loginView.stopLoading()
-                loginController.disconnectFromServer();
-                //loginView.state = "READY"
-            }
-        }
-        Behavior on height{
-            NumberAnimation{duration:600}
-        }
 
-    }
     Rectangle{
         id: backArrow
         anchors.left: parent.left
@@ -488,6 +473,8 @@ Rectangle{
     }
 
     Component.onCompleted: {
-        loginController.setConnection(APP_IP,APP_PORT)
+        //loginController.setConnection(APP_IP_WC,APP_PORT)
+        //loginController.setConnection(APP_IP_EC,APP_PORT)
+        loginController.setConnection(APP_IP_LC,APP_PORT)
     }
 }

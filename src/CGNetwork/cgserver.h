@@ -42,7 +42,7 @@ signals:
     // game related
     void opponentMoved(QJsonObject move);
     void gameSynchronized(int state, quint64 time);
-    void gameFinished(int result, QJsonObject move, QString fen, QString last);
+    void gameFinished(QJsonObject  game_result);
     void recievedDrawResponse(int response);
     void currentPing(quint64 ping);
 

@@ -1,12 +1,19 @@
 import QtQuick 2.8
-
+import CGNetwork 1.0
 Item {
     id: loadContainer
     property int duration:750
     property alias text:loadingText
+    property alias cancel:cancelButton
+    property alias cancelText:cancelButton.text
     property real ballWidth:width/5 < height/7 ? width/5:height/7
     anchors.fill: parent
     property alias ballSpacing:ballRow.spacing
+    FontLoader{
+        id:arkhip
+        source:"qrc:/fonts/Arkhip_font.ttf"
+    }
+
     Rectangle{
         id:background
         anchors.fill: parent
@@ -62,11 +69,14 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: parent.height*.16
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
         color: "white"
         font.bold: true
-        style: Text.Raised
         styleColor: "darkgrey"
-        font.pixelSize:parent.height * .056 < parent.width*.056 ? parent.height * .056:parent.width*.056
+        font.family:  arkhip.name
+        font.pointSize: parent.height < parent.width ? 22:24
+        antialiasing: true
 
     }
     onVisibleChanged: {
@@ -96,5 +106,13 @@ Item {
         ball3.x = (ball1.width + ball1.x)*2
         ball4.x = (ball1.width + ball1.x)*3
         ball5.x = (ball1.width + ball1.x)*4
+    }
+    CG_DarkButton{
+        id: cancelButton
+        anchors.bottom:parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottomMargin: parent.height/8
+        width: parent.width >= 800 ? 560:parent.width*.8
+        height: 60
     }
 }

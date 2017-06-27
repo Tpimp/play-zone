@@ -17,7 +17,7 @@ Rectangle{
         verticalAlignment: Text.AlignVCenter
         font.family: "fonts/Arkhip_font.ttf"
         renderType: Text.NativeRendering
-        font.pixelSize: container.height *.65
+        font.pixelSize: container.height *.65 > 30 ? 22:container.height*.65
     }
 
     MouseArea{

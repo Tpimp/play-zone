@@ -8,6 +8,7 @@ Rectangle {
     property var black:undefined
     property var gameBoard:undefined
     property bool playerTurn:true
+    property int  plyCount:0
     signal gameOver();
     function resizeBoard(){
         if(boardLoader.status == Loader.Ready && boardLoader.active){
@@ -18,14 +19,15 @@ Rectangle {
 
     function startNewGame(white,black)
     {
-        topRect.state = "MATCHED";
         if(playerProfile.name() == white.name){ // local player is white
             blackPlayer.setBack(drawComponent);
             whitePlayer.setBack(playerComponent);
+            topRect.state = "MATCHED";
         }
         else{
             whitePlayer.setBack(drawComponent);
             blackPlayer.setBack(playerComponent);
+            topRect.state = "MATCHEDB";
         }
         whitePlayer.banner.setBanner(white.name,white.elo,white.country,"image://avatars/"+white.avatar,true);
         blackPlayer.banner.setBanner(black.name,black.elo,black.country,"image://avatars/"+black.avatar, false);
@@ -44,7 +46,7 @@ Rectangle {
             if(white.name == playerProfile.name()){ // if local player is white
                 remoteGame.calculatePlayerClock(false,move.time);
                 if(lastmove){
-                    blackPlayer.setMove(lastmove)
+                    blackPlayer.setMove(plyCount + ".) " + lastmove)
                 }
                 else{
                     blackPlayer.setMove("")
@@ -53,7 +55,8 @@ Rectangle {
             else{
                 remoteGame.calculatePlayerClock(true,move.time);
                 if(lastmove){
-                    whitePlayer.setMove(gameBoard.getLastMove())
+                    whitePlayer.setMove(++plyCount + ".) " + lastmove)
+                    blackPlayer.setMove(plyCount + ".) ..")
                 }
                 else{
                     whitePlayer.setMove("")
@@ -83,10 +86,8 @@ Rectangle {
                 case 0:
                     remoteGame.calculateSyncClock(time);
                     syncTimer.count =1;
-                    syncTimer.interval = 50 - serverPing;
-                    if(syncTimer.interval <= 0){
-                        syncTimer.interval = 1;
-                    }
+                    var synctime = (5000 - serverPing);
+                    syncTimer.interval = synctime;
                     syncTimer.start()
                     break;
                 case 1:
@@ -106,21 +107,21 @@ Rectangle {
             {
                 remoteGame.stopPlayerTimer(true);
                 if(white.name == playerProfile.name()){
-                    remoteGame.sendResult(-1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                    remoteGame.sendResult(-2,gameBoard.getPGN());
                 }
                 else
                 {
-                    remoteGame.sendResult(1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                    remoteGame.sendResult(2,gameBoard.getPGN());
                 }
             }
             else{
                 remoteGame.stopPlayerTimer(false);
                 if(white.name == playerProfile.name()){
-                    remoteGame.sendResult(1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                    remoteGame.sendResult(2,gameBoard.getPGN());
                 }
                 else
                 {
-                    remoteGame.sendResult(-1,{},gameBoard.getFEN(),gameBoard.getPGN());
+                    remoteGame.sendResult(-2,gameBoard.getPGN());
                 }
             }
         }
@@ -171,7 +172,130 @@ Rectangle {
 
         onGameFinished: {
             remoteGame.stopPlayerTimer(playerColor);
+            blackPlayer.banner.elo = game_result.elo_b;
+            whitePlayer.banner.elo = game_result.elo_w;
+            remoteGame.calculatePlayerClock(false,game_result.time_b);
+            remoteGame.calculatePlayerClock(true,game_result.time_w);
+            if(playerProfile.color){
+                switch(game_result.result_w){
+                    case -3: //loss by resignation
+                        topRect.state = "POSTBW";
+                        centerText.text = white.name + " lost by resignation"
+                        resignSound.play();
+                        break;
+                    case -2: // loss to time expired
+                        topRect.state = "POSTBW";
+                        centerText.text = white.name + " lost by time"
+                        resignSound.play();
+                        break;
+                    case -1: // loss to checkmate
+                        topRect.state = "POSTBW";
+                        centerText.text = black.name + " won by checkmate"
+                        break;
+                    case 0:  // Draw Agreed (offer)
+                        topRect.state = "POSTWW";
+                        centerText.text = "Game drawn by agreement"
+                        drawSound.play();
+                        break;
+                    case 1: // I win by checkmate
+                        topRect.state = "POSTWW";
+                        centerText.text = white.name + " won by checkmate"
+                        wonSound.play()
+                        break;
+                    case 2: // I win by player time expired
+                        topRect.state = "POSTWW";
+                        centerText.text = black.name + " lost by time"
+                        wonSound.play()
+                        break;
+                    case 3: // I win by player resignation
+                        topRect.state = "POSTWW";
+                        centerText.text = black.name + " lost by resignation"
+                        wonSound.play()
+                        break;
+                    case 10:
+                        topRect.state = "POSTWW";
+                        centerText.text = "Game drawn by stalemate"
+                        staleSound.play();
+                        break;
+                    case 11:
+                        topRect.state = "POSTWW";
+                        centerText.text = "Game drawn by 50 move rule"
+                        drawSound.play();
+                        break;
+                    case 12:
+                        topRect.state = "POSTWW";
+                        centerText.text = "Game drawn by repetition"
+                        drawSound.play();
+                        break;
+                    case 13:
+                        topRect.state = "POSTWW";
+                        centerText.text = "Game drawn due to lack of material"
+                        staleSound.play();
+                        break;
+                    default: break;
+                }
+            }
 
+        else
+        {
+            switch(game_result.result_b){
+                case -3: //loss by resignation
+                    topRect.state = "POSTWW";
+                    centerText.text = black.name + " lost by resignation"
+                    resignSound.play();
+                    break;
+                case -2: // loss to time expired
+                    topRect.state = "POSTWW";
+                    centerText.text = black.name + " lost by time"
+                    resignSound.play();
+                    break;
+                case -1: // loss to checkmate
+                    topRect.state = "POSTWW";
+                    centerText.text = black.name + " lost by checkmate"
+                    break;
+                case 0:  // Draw Agreed (offer)
+                    topRect.state = "POSTBW";
+                    centerText.text = "Game drawn by agreement"
+                    drawSound.play();
+                    break;
+                case 1: // I win by checkmate
+                    topRect.state = "POSTBW";
+                    centerText.text = white.name + " lost by checkmate"
+                    wonSound.play()
+                    break;
+                case 2: // I win by player time expired
+                    topRect.state = "POSTBW";
+                    centerText.text = white.name + " lost by time"
+                    wonSound.play()
+                    break;
+                case 3: // I win by player resignation
+                    topRect.state = "POSTBW";
+                    centerText.text = white.name + " lost by resignation"
+                    wonSound.play()
+                    break;
+                case 10:
+                    topRect.state = "POSTBW";
+                    centerText.text = "Game drawn by stalemate"
+                    staleSound.play();
+                    break;
+                case 11:
+                    topRect.state = "POSTBW";
+                    centerText.text = "Game drawn by 50 move rule"
+                    drawSound.play();
+                    break;
+                case 12:
+                    topRect.state = "POSTBW";
+                    centerText.text = "Game drawn by repetition"
+                    drawSound.play();
+                    break;
+                case 13:
+                    topRect.state = "POSTBW";
+                    centerText.text = "Game drawn due to lack of material"
+                    staleSound.play();
+                    break;
+                default: break;
+                }
+            }
         }
     }
     Timer{
@@ -183,7 +307,14 @@ Rectangle {
         onTriggered: {
             if(syncTimer.count <=0){
                 syncTimer.stop();
-                topRect.state = "GAME"
+                if(playerProfile.name() == white.name){
+                    topRect.state = "GAMEW"
+                }
+                else
+                {
+                    topRect.state = "GAMEB"
+                }
+
                 remoteGame.startPlayerTimer();
             }
             else{
@@ -196,30 +327,107 @@ Rectangle {
         State{
             name:"MATCHED"
             extend:""
-        },
-        State{
-            name:"GAME"
-            extend:"MATCHED"
-            AnchorChanges{target:whitePlayer;  anchors.bottom:topRect.bottom;  anchors.top: boardLoader.bottom; anchors.left: topRect.left; anchors.right:topRect.right}
-            AnchorChanges{target:blackPlayer;  anchors.top:topRect.top;anchors.bottom: boardLoader.top;anchors.left: topRect.left; anchors.right:topRect.right}
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
 
             PropertyChanges {
                 target: blackPlayer
-                anchors.topMargin:4
-                anchors.bottomMargin:8
-                anchors.leftMargin: 1
-                anchors.rightMargin: 1
+                anchors.margins:8
+                height:boundingRect.height/5
+                anchors.topMargin:boundingRect.height*.25
+                anchors.leftMargin:boundingRect.width/20
             }
             PropertyChanges {
                 target: whitePlayer
+                anchors.margins:8
+                anchors.topMargin: 8
+                height:boundingRect.height/5
+                anchors.bottomMargin:boundingRect.height*.05
+                anchors.leftMargin:boundingRect.width/20
+            }
+        },
+        State{
+            name:"MATCHEDB"
+            extend:""
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+
+            PropertyChanges {
+                target: blackPlayer
+                anchors.margins:8
+                anchors.topMargin:8
+                height:boundingRect.height/5
+                anchors.bottomMargin:boundingRect.height*.05
+                anchors.leftMargin:boundingRect.width/20
+            }
+            PropertyChanges {
+                target: whitePlayer
+                anchors.margins:8
+                height:boundingRect.height/5
+                anchors.topMargin:boundingRect.height*.25
+                anchors.leftMargin:boundingRect.width/20
+            }
+        },
+        State{
+            name:"GAMEW"
+            extend:""
+
+            AnchorChanges{target:whitePlayer;  anchors.bottom:topRect.bottom;  anchors.top: boardLoader.bottom; anchors.left: boardLoader.left; anchors.right:boardLoader.right}
+            AnchorChanges{target:blackPlayer;  anchors.top:topRect.top; anchors.bottom: boardLoader.top;anchors.left: boardLoader.left; anchors.right:boardLoader.right}
+
+            PropertyChanges {
+                target: blackPlayer
+                anchors.topMargin:1
                 anchors.bottomMargin:4
                 anchors.leftMargin: 1
                 anchors.rightMargin: 1
-                anchors.topMargin: 8
+                width:topRect.width
             }
+            PropertyChanges {
+                target: whitePlayer
+                anchors.bottomMargin:1
+                anchors.leftMargin: 1
+                anchors.rightMargin: 1
+                anchors.topMargin: 4
+                width:topRect.width
+            }
+
             PropertyChanges {target:boundingRect; visible:false;}
             PropertyChanges {target:boardLoader; active:true;}
 
+            StateChangeScript{ script:{
+                    whitePlayer.banner.setGameMode();
+                    whitePlayer.banner.setTurn(true)
+                    blackPlayer.banner.setGameMode();
+                    topRect.resetBoard();
+                }
+            }
+        },
+        State{
+            name:"GAMEB"
+            extend:""
+
+            AnchorChanges{target:blackPlayer;  anchors.bottom:topRect.bottom;  anchors.top: boardLoader.bottom; anchors.left: boardLoader.left; anchors.right:boardLoader.right}
+            AnchorChanges{target:whitePlayer;  anchors.top:topRect.top; anchors.bottom: boardLoader.top;anchors.left: boardLoader.left; anchors.right:boardLoader.right}
+
+            PropertyChanges {
+                target: whitePlayer
+                anchors.topMargin:1
+                anchors.bottomMargin:4
+                anchors.leftMargin: 1
+                anchors.rightMargin: 1
+                width:topRect.width
+            }
+            PropertyChanges {
+                target: blackPlayer
+                anchors.bottomMargin:1
+                anchors.leftMargin: 1
+                anchors.rightMargin: 1
+                anchors.topMargin: 4
+                width:topRect.width
+            }
+            PropertyChanges {target:boundingRect; visible:false;}
+            PropertyChanges {target:boardLoader; active:true; }
             StateChangeScript{ script:{
                     whitePlayer.banner.setGameMode();
                     whitePlayer.banner.setTurn(true)
@@ -234,18 +442,8 @@ Rectangle {
             PropertyChanges {target:boardLoader; active:true; visible:false}
             PropertyChanges {target:matchedImage; visible:false;}
             PropertyChanges {target:boundingRect; visible:true;}
-            PropertyChanges {
-                target: blackPlayer
-                anchors.margins:8
-                anchors.topMargin:2
-            }
-            PropertyChanges {
-                target: whitePlayer
-                anchors.margins:8
-                anchors.topMargin: 4
-            }
-            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
-            //AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+
+
             AnchorChanges{target:centerText;anchors.bottom:leaveButton.top;  anchors.top: undefined; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
             PropertyChanges{
                 target:centerText
@@ -274,57 +472,43 @@ Rectangle {
         },
 
         State{
+            name:"POSTWW"
+            extend:"POST"
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: whitePlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+
+            PropertyChanges {
+                target: blackPlayer
+                anchors.margins:8
+                anchors.topMargin:8
+                height:boundingRect.height/5
+            }
+            PropertyChanges {
+                target: whitePlayer
+                anchors.margins:8
+                anchors.topMargin: 4
+                height:boundingRect.height/5
+            }
+        },
+        State{
             name:"POSTBW"
             extend:"POST"
 
-            PropertyChanges{
-                target:centerText
-                visible:true
-                text:blackPlayer.banner.player+" Wins By\nCheckmate"
+            AnchorChanges{target:whitePlayer;anchors.bottom:undefined;  anchors.top: blackPlayer.bottom; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+            AnchorChanges{target:blackPlayer;anchors.bottom:undefined;  anchors.top: boundingRect.top; anchors.left: boundingRect.left; anchors.right:boundingRect.right}
+
+            PropertyChanges {
+                target: blackPlayer
+                anchors.margins:8
+                anchors.topMargin:4
+                height:boundingRect.height/5
             }
-
-        },
-        State{
-            name:"POSTWW"
-            extend:"POST"
-
-            PropertyChanges{
-                target:centerText
-                visible:true
-                text:whitePlayer.banner.player+" Wins By\nCheckmate"
+            PropertyChanges {
+                target: whitePlayer
+                anchors.margins:8
+                anchors.topMargin: 8
+                height:boundingRect.height/5
             }
-
-            // to do build post game view
-
-        },
-        State{
-            name:"POSTDW"
-            extend:"POST"
-            PropertyChanges{
-                target:centerText
-                visible:true
-                text:"Game finished a Draw"
-            }
-        },
-        State{
-            name:"RESIGNW"
-            extend:"POST"
-            PropertyChanges{
-                target:centerText
-                visible:true
-                text:blackPlayer.banner.player+" Wins by opponent Resignation"
-            }
-
-        },
-        State{
-            name:"RESIGNB"
-            extend:"POST"
-           PropertyChanges{
-                target:centerText
-                visible:true
-                text:whitePlayer.banner.player+" Wins by opponent Resignation"
-            }
-
         }
     ]
 
@@ -401,16 +585,20 @@ Rectangle {
         anchors.left: topRect.left
         anchors.right: topRect.right
         anchors.verticalCenter: topRect.verticalCenter
-        height:topRect.height*.78
+        height:topRect.height*.8
+        rotation:0
+        property bool pieceRotation:false
         sourceComponent:  CG_Board{
             anchors.fill: boardLoader
+            pieceRotation:boardLoader.pieceRotation
             onSendMove: {
                 moveSound.play();
                 var lastmove = gameBoard.getLastMove()
                 var color = false;
                 if(playerProfile.name() == white.name){
                     if(lastmove){
-                        whitePlayer.setMove(gameBoard.getLastMove())
+                        whitePlayer.setMove(++plyCount + ".) " + lastmove)
+                        blackPlayer.setMove(plyCount + ".) ..")
                     }
                     else{
                         blackPlayer.setMove("")
@@ -419,7 +607,7 @@ Rectangle {
                 }
                 else{
                     if(lastmove){
-                        blackPlayer.setMove(lastmove)
+                        blackPlayer.setMove(plyCount + ".) " +lastmove)
                     }
                     else{
                         whitePlayer.setMove("")
@@ -475,7 +663,7 @@ Rectangle {
             onGameOver: {
                 remoteGame.stopPlayerTimer(playerTurn);
                 // do something to notify user game ended
-                remoteGame.sendResult(result,move,fen,game);
+                remoteGame.sendResult(result,game);
             }
             onPromote:{
                 if(white.name == playerProfile.name()){
@@ -506,6 +694,13 @@ Rectangle {
         onLoaded: {
             if(boardLoader.item){
                 topRect.gameBoard = boardLoader.item
+                if(playerProfile.name() == white.name){
+                    topRect.gameBoard.pieceRotation = false;
+                }
+                else
+                {
+                    topRect.gameBoard.pieceRotation = true;
+                }
                 topRect.gameBoard.resizeBoard();
             }
         }
@@ -514,15 +709,15 @@ Rectangle {
 
     CG_PromotePicker{
         id:promotePicker
-        anchors.fill: boardLoader
-        anchors.margins: 8
+        anchors.centerIn: parent
+        width:parent.width *.6
+        height: width
         visible:false
         property var from:undefined
         property var to:undefined
         onPieceChosen: {
             topRect.gameBoard.makeMove(from,to,piece,true);
             promotePicker.visible = false;
-            gameBoard.interactive = true
         }
     }
     CG_GameBanner{
@@ -535,6 +730,7 @@ Rectangle {
         anchors.leftMargin:boundingRect.width/20
         anchors.rightMargin:anchors.leftMargin
         banner.pieceSet: "qrc:///images/cg_kramnik2.png"
+
     }
 
     CG_GameBanner{
@@ -548,7 +744,6 @@ Rectangle {
         anchors.rightMargin:anchors.leftMargin
         banner.pieceSet: "qrc:///images/cg_kramnik.png"
     }
-
 
 
 

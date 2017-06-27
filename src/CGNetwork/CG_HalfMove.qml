@@ -10,7 +10,7 @@ Rectangle{
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         text:"Move"
-        font.pixelSize: height*.45
+        font.pixelSize: height*.65
     }
 }
 

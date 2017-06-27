@@ -16,7 +16,7 @@ public:
     Q_INVOKABLE void makeMove(int from, int to, QString fen, QString promote, int elapsed, double latency);
     Q_INVOKABLE void sendDraw(int draw);
     Q_INVOKABLE void sendSync(double latency);
-    Q_INVOKABLE void sendResult(int result, QJsonObject move, QString fen, QString game);
+    Q_INVOKABLE void sendResult(int result, QString game);
 
     Q_INVOKABLE void calculateSyncClock(quint64 time);
     Q_INVOKABLE void calculatePlayerClock(bool color, quint64 time);
@@ -34,7 +34,7 @@ signals:
     void opponentForfeit();
     void opponentMove(QJsonObject move);
     void gameSynchronized(int state, double time);
-    void gameFinished(int result, QJsonObject move, QString fen, QString game);
+    void gameFinished(QJsonObject  game_result);
     void drawResponse(int response);
     void playerTimerExpired(bool color);
     void syncPlayerClock(bool color, QString time);

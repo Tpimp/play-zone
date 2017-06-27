@@ -5,6 +5,7 @@ Item{
     property string type:""
     property real index:0
     property alias selected:glow.visible
+    property alias image:pieceImage
     z:100
     onTypeChanged: {
         pieceImage.source = "image://pieces/"+type;
@@ -21,6 +22,7 @@ Item{
     }
     Glow {
         id:glow
+        rotation:pieceImage.rotation
         anchors.fill: parent
         visible: false
         radius: 8

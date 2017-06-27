@@ -15,10 +15,12 @@
     "resources": [
     ],
     "root": "qrc:/main.qml",
-    "version": 0.3,
+    "version": 0.4,
 	"globals":{
         "APP_PORT":5445,
-        "APP_IP":"127.0.0.1",
+        "APP_IP_WC":"104.152.255.173",
+        "APP_IP_EC":"52.170.41.222",
+        "APP_IP_LC":"127.0.0.1",
         "APP_ID":"CG-Play-Zone",
 		"STATE":"OPEN-CG-HANDSHAKE"
 	}

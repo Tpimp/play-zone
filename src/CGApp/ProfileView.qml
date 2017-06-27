@@ -7,6 +7,7 @@ Rectangle {
     id: view
     clip:false
     property var profileBoard:undefined
+    signal finishedReview();
     function setShowingReview(review,fen,start_back){
         reviewView.setReview(review,fen,start_back);
         reviewView.visible = true;
@@ -29,6 +30,7 @@ Rectangle {
         var history = profileBoard.board.getHistory();
         reviewView.setReview(history,"",true);
         reviewView.visible = true;
+        recentGames.enabled = false;
     }
 
     states:[
@@ -426,6 +428,11 @@ Rectangle {
          id:reviewView
          anchors.fill: parent
          visible:false
+         onBackPressed:{
+             reviewView.visible = false;
+             recentGames.enabled = true;
+             finishedReview();
+         }
     }
 
     Component.onCompleted: {

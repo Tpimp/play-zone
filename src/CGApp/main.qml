@@ -19,6 +19,7 @@ Window {
         }
     }
 
+
     CGProfile{
         id:playerProfile
 
@@ -97,6 +98,8 @@ Window {
             loadingLoader.item.text.text = text;
             loadingLoader.item.visible = true;
             loadingLoader.item.duration = duration;
+            loadingLoader.item.cancelText.text = "Cancel Login"
+            loadingLoader.item.cancel.mouse.clicked.connect(loginView.cancelLogin)
         }
         onStopLoading: {
             loadingLoader.item.visible = false;
@@ -105,6 +108,7 @@ Window {
             loginSound.play();
             app.state = "LOBBY"
         }
+
         onPing:
         {
             serverLatency.text = ping;
@@ -133,9 +137,16 @@ Window {
                 }
                 onJoinMatchMaking:{
                     loadingLoader.item.text.text = "Finding Opponent...";
+                    loadingLoader.item.cancelText.text = "Cancel Matchmaking"
+                    loadingLoader.item.cancel.mouse.clicked.connect(lobbyView.stopMatchmaking)
                     loadingLoader.item.visible = true;
                     loadingLoader.item.duration = 650;
                 }
+                onDoneMatchmaking: {
+                    loadingLoader.item.text.text = "";
+                    loadingLoader.item.visible = false;
+                }
+
                 onPlayerMatched:{
                     if(!color){
                         gameLoader.white.name = playerProfile.name();
@@ -193,17 +204,20 @@ Window {
             black:gameLoader.black
             onGameOver: {
                 app.state = "LOBBY";
+                lobbyView.enableViews();
+                lobbyView.stopMatchmaking();
             }
             onReviewGame:{
                 app.state = "LOBBY";
                 lobbyView.setReview(review,"",true);
+                lobbyView.stopMatchmaking();
             }
         }
         onLoaded: {
             if(gameLoader.item != undefined){
                 background.gameView = gameLoader.item
                 gameLoader.item.startNewGame(white,black);
-                //gameLoader.item.startNewGame(opponent,opelo,opflag, playerColor,opavatar,gameID);
+                lobbyView.disableViews();
             }
         }
         active:false
@@ -212,15 +226,16 @@ Window {
     Rectangle{
         color:"transparent"
         anchors.top:background.top
-        anchors.horizontalCenter: background.horizontalCenter
+        anchors.left:background.left
         height:15
-        width:15
+        width:30
+        anchors.leftMargin: 10
         Text{
             id:serverLatency
             visible:false
-            font.pixelSize: 18
+            font.pixelSize: 14
             anchors.fill: parent
-            anchors.leftMargin: 4
+            anchors.leftMargin: 10
             horizontalAlignment: Text.AlignRight
             verticalAlignment: Text.AlignVCenter
         }

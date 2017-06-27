@@ -62,6 +62,7 @@ void CGServer::disconnectFromHost()
 {
     mConnected = false;
     mSocket.close(QWebSocketProtocol::CloseCodeGoingAway,"Logout");
+    mHeartBeat.stop();
 }
 
 
@@ -69,6 +70,7 @@ void CGServer::disconnectFromHost()
 void CGServer::handleDisconnect()
 {
     mConnected = false;
+    mHeartBeat.stop();
     emit disconnectedFromServer(0);
 }
 
@@ -139,11 +141,7 @@ void CGServer::parseServerMessage(QByteArray message)
                 QString result(params.at(0).toString());
                 QJsonDocument doc = QJsonDocument::fromJson(result.toLocal8Bit());
                 QJsonObject obj = doc.object();
-                int resulti = obj.value("result").toInt();
-                QJsonObject move = obj.value("move").toObject();
-                QString fen = obj.value("fen").toString();
-                QString last = obj.value("game").toString();
-                emit gameFinished(resulti,move,fen,last);
+                emit gameFinished(obj);
             }
             break;
         }

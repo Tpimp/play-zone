@@ -7,6 +7,7 @@ SUBDIRS =   src/CGWeb \
             src/CGEngine \
             src/CGAvatars \
             app \
+            installer
 
 app.depends = src/CGWeb \
             src/CGNetwork \
@@ -14,5 +15,4 @@ app.depends = src/CGWeb \
             src/CGAvatars \
             src/CGEngine \
             src/CGApp
-
 

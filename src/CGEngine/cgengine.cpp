@@ -224,25 +224,37 @@ bool CGEngine::makeAnimatedMove( QJsonObject move_data,QString promote)
     return true;
 }
 
-void CGEngine::isInCheck( int index){
-    emit playerCheck(index);
+void CGEngine::isInCheck( int index, bool checkmate){
+    if(checkmate){
+        emit playerCheckmate(index);
+    }
+    else{
+        emit playerCheck(index);
+    }
 }
 
-void CGEngine::handleGameOver(bool is_draw, bool is_checkmate, bool is_stalemate, bool is_threefold, bool insufficient_material)
+void CGEngine::handleGameOver(bool is_draw, bool is_checkmate, bool is_stalemate,
+                              bool is_threefold, bool insufficient_material, bool turn)
 {
     if(is_draw){
         if(is_threefold){
-            emit gameOverDraw(2);
+            emit gameOverDraw(12);
         }
         else if(insufficient_material){
-            emit gameOverDraw(1);
+            emit gameOverDraw(13);
         }
-        else{
-            emit gameOverDraw(0);
+        else{ // else 50 move rule
+            emit gameOverDraw(11);
         }
     }
     else if(is_checkmate){
-        emit gameOverCheckmate();
+        if(turn){
+            emit gameOverCheckmate(1);
+        }
+        else
+        {
+            emit gameOverCheckmate(-1);
+        }
     }
     else if (is_stalemate){
         emit gameOverStaleMate();
@@ -262,10 +274,7 @@ void CGEngine::moveReviewBack()
 void CGEngine::moveReviewFirst()
 {
     if(mReviewIndex > 0){
-        int distance = mReviewIndex;
-        for(int moves(0); moves < distance; moves++){
-            moveReviewBack();
-        }
+        emit moveTowardsFirst();
     }
 }
 
@@ -285,8 +294,8 @@ void CGEngine::moveReviewLast()
 {
     int length = mGameHistory.count();
     int current = mReviewIndex;
-    for(current; current < length; current++){
-        moveReviewForward();
+    if( current < length){
+        emit moveTowardsLast();
     }
 
 }
@@ -325,7 +334,7 @@ void CGEngine::startReviewGame(QJsonArray history, QString final_fen,  bool star
     if(final_fen.isEmpty() && start_last){
         // must iterate throught the moves
         setBoardToFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        //moveReviewLast();
+        emit moveTowardsLast();
     }
     else if(!final_fen.isEmpty()){
         // set board to final fen and set index to final move

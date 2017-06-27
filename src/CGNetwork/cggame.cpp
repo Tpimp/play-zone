@@ -33,7 +33,6 @@ int CGGame::adjustPlayerTimer(bool color)
     }
     else{
         if(elapsed >= mBlackClock){ // timeout
-            starttime = 0;
             emit syncPlayerClock(false,"00:00");
             emit playerTimerExpired(false);
             return elapsed;
@@ -64,7 +63,7 @@ QString CGGame::blacksTime()
 {
     quint64 minutes = (mBlackClock/60000);
     quint64 seconds = ((mBlackClock-(60000*minutes))/1000);
-    //quint64 millis = (mBlackClock - ((60000*minutes) + (1000*seconds)));
+    quint64 millis = (mBlackClock - ((60000*minutes) + (1000*seconds)));
     QString out;
     QTextStream stream(&out);
     if(minutes < 10){
@@ -73,6 +72,9 @@ QString CGGame::blacksTime()
     stream << minutes << ":";
     if(seconds < 10){
         stream << "0";
+    }
+    if(millis > 0){
+        seconds += 1;
     }
     stream << seconds;// << "." << millis;
     return out;
@@ -82,7 +84,7 @@ void CGGame::calculatePlayerClock(bool color, quint64 time)
 {
     quint64 minutes = (time/60000);
     quint64 seconds = ((time - (60000*minutes)) /1000);
-    //quint64 millis = (time - ((60000*minutes) + (1000*seconds)));
+    quint64 millis = (time - ((60000*minutes) + (1000*seconds)));
     QString out;
     QTextStream stream(&out);
     if(minutes < 10){
@@ -91,6 +93,9 @@ void CGGame::calculatePlayerClock(bool color, quint64 time)
     stream << minutes << ":";
     if(seconds < 10){
         stream << "0";
+    }
+    if(millis > 0){
+        seconds += 1;
     }
     stream << seconds;// << "." << millis;
     if(color){
@@ -108,7 +113,6 @@ void CGGame::calculateSyncClock(quint64 time)
     mBlackClock = time;
     quint64 minutes = (time/60000);
     quint64 seconds = ((time - (60000*minutes)) /1000);
-  //  quint64 millis = (time - ((60000*minutes) + (1000*seconds)));
     QString out;
     QTextStream stream(&out);
     if(minutes < 10){
@@ -151,14 +155,14 @@ void CGGame::sendDraw(int draw){
     mServer->writeMessage( doc.toBinaryData());
 }
 
-void CGGame::sendResult(int result, QJsonObject move, QString fen, QString game)
+void CGGame::sendResult(int result, QString game)
 {
     QJsonObject obj;
     QJsonArray array;
     obj["T"] = SEND_RESULT;
     array.append(result);
-    array.append(move);
-    array.append(fen);
+    array.append(double(mWhiteClock));
+    array.append(double(mBlackClock));
     array.append(game);
     obj["P"] = array;
     QJsonDocument doc;
@@ -186,8 +190,6 @@ int CGGame::stopPlayerTimer(bool color)
     if(color){
         if(elapsed >= mWhiteClock){ // timeout
             mWhiteClock = 0;
-            emit syncPlayerClock(true,"00:00");
-            emit playerTimerExpired(true);
             return elapsed;
         }
         mWhiteClock -= elapsed;
@@ -196,8 +198,6 @@ int CGGame::stopPlayerTimer(bool color)
     else{
         if(elapsed >= mBlackClock){ // timeout
             mBlackClock = 0;
-            emit syncPlayerClock(false,"00:00");
-            emit playerTimerExpired(false);
             return elapsed;
         }
         mBlackClock -= elapsed;
@@ -217,7 +217,7 @@ void CGGame::startPlayerTimer()
 QString CGGame::whitesTime(){
     quint64 minutes = (mWhiteClock/60000);
     quint64 seconds = ((mWhiteClock- (60000*minutes)) /1000);
-   // quint64 millis = (mWhiteClock - ((60000*minutes) + (1000*seconds)));
+    quint64 millis = (mWhiteClock - ((60000*minutes) + (1000*seconds)));
     QString out;
     QTextStream stream(&out);
     if(minutes < 10){
@@ -226,6 +226,9 @@ QString CGGame::whitesTime(){
     stream << minutes << ":";
     if(seconds < 10){
         stream << "0";
+    }
+    if(millis > 0){
+        seconds += 1;
     }
     stream << seconds;// << "." << millis;
     return out;

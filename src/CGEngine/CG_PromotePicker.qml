@@ -1,7 +1,8 @@
 import QtQuick 2.8
 
 Rectangle {
-    radius:8
+    radius:4
+    border.width: 2
     id:picker
     property bool playerColor:true
     signal   pieceChosen(string piece);
@@ -38,9 +39,8 @@ Rectangle {
         id:rook
         anchors.left:parent.left
         anchors.top:parent.top
-        anchors.margins: 24
-        anchors.topMargin: parent.height *.1
-        height:parent.height*.39
+        anchors.margins: 30
+        height:parent.height*.34
         width:height
         type:"cg_kramnik.png#10"
         mouse.onPressed: {
@@ -50,8 +50,8 @@ Rectangle {
     CG_PieceButton{
         id:knight
         anchors.right:parent.right
-        anchors.top:rook.top
-        anchors.margins: 24
+        anchors.top:parent.top
+        anchors.margins: 30
         height:rook.height
         width:height
         type:"cg_kramnik.png#8"
@@ -63,7 +63,7 @@ Rectangle {
         id:queen
         anchors.left:parent.left
         anchors.bottom:parent.bottom
-        anchors.margins: 24
+        anchors.margins: 30
         height:rook.height
         width:height
         type:"cg_kramnik.png#7"
@@ -75,7 +75,7 @@ Rectangle {
         id:bishop
         anchors.right:parent.right
         anchors.bottom:parent.bottom
-        anchors.margins: 24
+        anchors.margins: 30
         height:rook.height
         type:"cg_kramnik.png#9"
         width:height

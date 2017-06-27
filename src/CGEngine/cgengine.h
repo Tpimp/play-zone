@@ -17,11 +17,11 @@ public:
     Q_INVOKABLE bool checkValidMove(QJsonArray moves, QString tile);
     Q_INVOKABLE QString getName(int index);
     Q_INVOKABLE void setCellSize(int size);
-    Q_INVOKABLE void isInCheck(int index);
+    Q_INVOKABLE void isInCheck(int index, bool checkmate);
     Q_INVOKABLE void clearBoard();
 
     Q_INVOKABLE void handleGameOver(bool is_draw, bool is_checkmate, bool is_stalemate,
-                                    bool is_threefold, bool insufficient_material);
+                                    bool is_threefold, bool insufficient_material, bool turn);
 
     Q_INVOKABLE void startNewGame(QJsonObject white, QJsonObject black, QJsonObject conditions,
                                   QJsonObject timedate);
@@ -46,7 +46,8 @@ signals:
     void pushingPawn(int from, int to);
     void clearTile(int tile);
     void playerCheck(int index);
-    void gameOverCheckmate();
+    void playerCheckmate(int index);
+    void gameOverCheckmate(int result);
     void gameOverDraw(int type);
     void gameOverStaleMate();
     void removePiece(int index);
@@ -54,6 +55,8 @@ signals:
     void enPassantAvailable(QString tile);
     void halfMoveChanged(int halfmove);
     void plyCountChanged(int plycount);
+    void moveTowardsLast();
+    void moveTowardsFirst();
 
     // game review signalss
     void moveIndexChanged(int index);

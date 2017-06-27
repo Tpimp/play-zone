@@ -18,7 +18,7 @@ CONFIG(debug, debug|release) {
 }
 win32:path_to_deploy = $$clean_path( $$OUT_PWD/$${buildtype}/chessgames )
 win64:path_to_deploy = $$clean_path( $$OUT_PWD/$${buildtype}/chessgames )
-unix:path_to_deploy = $$clean_path( $$OUT_PWD )
+unix:path_to_deploy = $$clean_path( $$OUT_PWD/play-zone.app/Contents/MacOS )
 copydata.commands = $(COPY_DIR) $$shell_path($$_PRO_FILE_PWD_/chessgames) $$shell_path($$path_to_deploy)
 first.depends = $(first) copydata
 export(first.depends)
@@ -66,3 +66,9 @@ RESOURCES +=
 
 
 unix:QMAKE_CLEAN += path_to_deploy
+
+plist_path = $$shell_path($$_PRO_FILE_PWD_/../installer/config/osx.plist)
+
+QMAKE_INFO_PLIST = $$plist_path
+
+

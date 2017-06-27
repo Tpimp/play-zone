@@ -3,6 +3,7 @@ import CGEngine 1.0
 
 Item {
     id:reviewContainer
+    signal backPressed();
     function setReview(review, fen, start_back){
         boardEngine.clearBoard();
         if(start_back !== null){
@@ -59,6 +60,14 @@ Item {
         onRefreshPiece:{
             reviewBoard.refreshPiece(tile);
         }
+        onMoveTowardsFirst: {
+            boardEngine.moveReviewBack()
+            boardEngine.moveReviewFirst()
+        }
+        onMoveTowardsLast: {
+            boardEngine.moveReviewForward()
+            boardEngine.moveReviewLast()
+        }
     }
     FontLoader{
         id:arkhip
@@ -69,6 +78,7 @@ Item {
         id: titleRect
         anchors.fill:parent
         Text{
+           id:titleText
            anchors.top:parent.top
            anchors.left:buttonBack.left
            anchors.right:parent.right
@@ -98,10 +108,43 @@ Item {
             fillMode: Image.PreserveAspectFit
             MouseArea{
                 anchors.fill: parent
-                onClicked: reviewContainer.visible = false;
+                onClicked: backPressed();
             }
         }
+        TextEdit{
+            id:pgnentry
+            anchors.left:buttonBack.right
+            anchors.right:parent.right
+            anchors.margins: 10
+            anchors.top:titleText.bottom
+            height:80
 
+        }
+        Rectangle{
+            id:setPGN
+            color:"lightgreen"
+            border.width: 1
+            height:40
+            width:50
+            radius:4
+            anchors.top:buttonBack.bottom
+            anchors.left:parent.left
+            Text{
+                anchors.fill: parent
+                text:"load"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            MouseArea{
+                anchors.fill: parent
+                onClicked:{
+                   // profileBoard.board.setBoardPGN(pgn);
+                    reviewBoard.setBoardPGN(pgnentry.text)
+                    var history = reviewBoard.getHistory();
+                    setReview(history,"",true);
+                }
+            }
+        }
         color:"lightgrey"
         CG_Board{
             id:reviewBoard

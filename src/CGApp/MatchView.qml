@@ -5,6 +5,11 @@ import QtQuick.Controls 2.1
 
 Rectangle {
     id: match
+    function returnToLobby(){
+        oneButton.enabled = true;
+        fiveButton.enabled = true;
+        thirtyButton.enabled = true;
+    }
 
     Image{
         id:background
@@ -88,8 +93,11 @@ Rectangle {
         anchors.rightMargin: 8
         height:userBar.height * .75
         width:height
-        minuteText:"1"
+        minuteText:"1\nMinute"
         mouse.onClicked: {
+            oneButton.enabled = false;
+            fiveButton.enabled = false;
+            thirtyButton.enabled = false;
             lobbyController.joinMatchMaking(0)
             root.joinMatchMaking();
         }
@@ -102,8 +110,11 @@ Rectangle {
         anchors.horizontalCenter: userBar.horizontalCenter
         height:userBar.height * .75
         width:height
-        minuteText:"5"
+        minuteText:"5\nMinutes"
         mouse.onClicked: {
+            oneButton.enabled = false;
+            fiveButton.enabled = false;
+            thirtyButton.enabled = false;
             lobbyController.joinMatchMaking(1)
             root.joinMatchMaking();
         }
@@ -117,8 +128,11 @@ Rectangle {
         anchors.top:fiveButton.top
         height:oneButton.width
         width:oneButton.width
-        minuteText:"30"
+        minuteText:"30\nMinutes"
         mouse.onClicked: {
+            oneButton.enabled = false;
+            fiveButton.enabled = false;
+            thirtyButton.enabled = false;
             lobbyController.joinMatchMaking(2)
             root.joinMatchMaking();
         }

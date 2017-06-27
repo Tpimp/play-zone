@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+        <key>CFBundleDisplayName</key>
+        <string>Play Zone</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleGetInfoString</key>
+        <string>An online chess game</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleExecutable</key>
+	<string>play-zone</string>
+	<key>CFBundleIdentifier</key>
+        <string>com.cg.play-zone</string>
+        <key>CFBundleVersion</key>
+        <string>0.4</string>
+</dict>
+</plist>

@@ -161,10 +161,8 @@ Rectangle {
         anchors.left:avatarFrame.right
         anchors.right: flag.left
         anchors.bottom:parent.bottom
-        height:banner.height*.32
+        height:clock.height
         anchors.margins: 8
-        anchors.leftMargin: parent.width/12
-        anchors.rightMargin:anchors.leftMargin
     }
 
     Image{

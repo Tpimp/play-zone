@@ -72,5 +72,5 @@ win:QMAKE_CLEAN += /s /f /q -r $$shell_path($$path_to_deploy/plugins/com/chessga
 unix:QMAKE_CLEAN += $$shell_path($$path_to_deploy/plugins/com/chessgames/engine/*)
 
 
-RESOURCES += \
-    engine.qrc
+RESOURCES += engine.qrc
+

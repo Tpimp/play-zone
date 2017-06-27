@@ -22,7 +22,7 @@ public slots:
    void lobbyMessage(QString lobby, QString message);
    void joinMatchMaking(int type);
    void matchedPlayer(QString name, int elo, QString country, QString avatar, bool color, int id);
-
+   void leaveMatchMaking();
 protected:
     CGServer*   mServer;
 };

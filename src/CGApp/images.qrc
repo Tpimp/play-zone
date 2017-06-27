@@ -31,5 +31,6 @@
         <file>images/check2.png</file>
         <file>images/cg_leftArrow.png</file>
         <file>images/cg_leftBegin.png</file>
+        <file>images/checkmate.png</file>
     </qresource>
 </RCC>

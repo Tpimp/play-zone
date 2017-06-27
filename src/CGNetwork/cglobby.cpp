@@ -36,6 +36,18 @@ void CGLobby::matchedPlayer(QString name, int elo, QString country, QString avat
     //emit matchedWithPlayer(name,elo,country,avatar,color,id);
 }
 
+void CGLobby::leaveMatchMaking()
+{
+    QJsonObject obj;
+    QJsonArray array;
+    obj["T"] = CANCEL_MATCHING;
+    obj["P"] = array;
+    QJsonDocument doc;
+    doc.setObject(obj);
+    QByteArray output = doc.toBinaryData();
+    mServer->writeMessage(output);
+}
+
 CGLobby::~CGLobby()
 {
 

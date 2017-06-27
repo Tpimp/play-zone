@@ -9,6 +9,7 @@ Rectangle {
     color:"transparent"
     signal logout()
     signal requestUpdateProfile()
+    signal doneMatchmaking();
     //property var userProfile:undefined
     signal joinMatchMaking();
     signal playerMatched(string name, int elo, string country, string avatar, bool color,double id)
@@ -16,13 +17,42 @@ Rectangle {
         swipeView.currentIndex = 0;
         profileView.setShowingReview(review,fen,start_back);
     }
+    function stopMatchmaking(){
+        root.doneMatchmaking();
+        lobbyController.leaveMatchMaking();
+        lobby.returnToLobby();
+    }
 
     CGLobby{
         id: lobbyController
         onMatchedWithPlayer:{
             root.playerMatched(opponent.name,opponent.elo,opponent.flag,opponent.avatar, opponent.color,opponent.id);
         }
+    }
 
+    function enableViews()
+    {
+        switch(swipeView.currentIndex){
+        case 0:
+            lobby.enabled = false;
+            chatView.enabled = false;
+            profileView.enabled = true;
+            break;
+        case 1:
+            profileView.enabled = false;
+            chatView.enabled = false;
+            lobby.enabled = true;
+            break;
+        case 2:
+            profileView.enabled = false;
+            lobby.enabled = false;
+            chatView.enabled = true;
+        }
+    }
+    function disableViews(){
+        profileView.enabled = false;
+        lobby.enabled = false;
+        chatView.enabled = false;
     }
 
     /*****************************************************************************
@@ -53,6 +83,9 @@ Rectangle {
         ProfileView{
             id:profileView
             color:"transparent"
+            onFinishedReview:{
+                enableViews();
+            }
         }
 
         MatchView{
@@ -62,6 +95,24 @@ Rectangle {
         ChatView{
             id:chatView
             color:"transparent"
+        }
+        onCurrentIndexChanged: {
+            switch(currentIndex){
+            case 0:
+                lobby.enabled = false;
+                chatView.enabled = false;
+                profileView.enabled = true;
+                break;
+            case 1:
+                profileView.enabled = false;
+                chatView.enabled = false;
+                lobby.enabled = true;
+                break;
+            case 2:
+                profileView.enabled = false;
+                lobby.enabled = false;
+                chatView.enabled = true;
+            }
 
         }
     }
